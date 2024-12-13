@@ -5,7 +5,14 @@ ORGANISATION_NAME="dragonflydb"
 PROVIDER_NAME="terraform-provider-dfcloud"
 TF_PROVIDER_NAME="dfcloud"
 
-VERSION="0.0.1"
+# Fetch latest version from GitHub API
+VERSION=$(curl -s "https://api.github.com/repos/${ORGANISATION_NAME}/${PROVIDER_NAME}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+if [ -z "$VERSION" ]; then
+    echo "Error: Could not fetch latest version"
+    exit 1
+fi
+echo "Latest version of the provider is: $VERSION"
+
 OS="linux"
 ARCH="amd64"
 
@@ -17,7 +24,7 @@ mkdir -p "$PLUGIN_DIR"
 DOWNLOAD_URL="https://github.com/${ORGANISATION_NAME}/${PROVIDER_NAME}/releases/download/v${VERSION}/${PROVIDER_NAME}_${VERSION}_${OS}_${ARCH}.zip"
 
 # Download and extract
-echo "Downloading provider from: $DOWNLOAD_URL"
+echo "Downloading provider version ${VERSION} from: $DOWNLOAD_URL"
 curl -L "$DOWNLOAD_URL" -o "${PLUGIN_DIR}/provider.zip"
 cd "$PLUGIN_DIR"
 unzip provider.zip
