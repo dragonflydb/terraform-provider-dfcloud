@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Configuration
-ORGANISATION_NAME="dragonflydb"
+ORGANIZATION_NAME="dragonflydb"
 PROVIDER_NAME="terraform-provider-dfcloud"
 TF_PROVIDER_NAME="dfcloud"
 
 # Fetch latest version from GitHub API
-VERSION=$(curl -s "https://api.github.com/repos/${ORGANISATION_NAME}/${PROVIDER_NAME}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+VERSION=$(curl -s "https://api.github.com/repos/${ORGANIZATION_NAME}/${PROVIDER_NAME}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 if [ -z "$VERSION" ]; then
   echo "Error: Could not fetch latest version"
   exit 1
@@ -52,7 +52,7 @@ PLUGIN_DIR="$DEV_OVERRIDES_PATH"
 mkdir -p "$PLUGIN_DIR"
 
 # Download URL construction
-DOWNLOAD_URL="https://github.com/${ORGANISATION_NAME}/${PROVIDER_NAME}/releases/download/v${VERSION}/${PROVIDER_NAME}_${VERSION}_${OS}_${ARCH}.zip"
+DOWNLOAD_URL="https://github.com/${ORGANIZATION_NAME}/${PROVIDER_NAME}/releases/download/v${VERSION}/${PROVIDER_NAME}_${VERSION}_${OS}_${ARCH}.zip"
 
 # Download and extract
 echo "Downloading provider version ${VERSION} from: $DOWNLOAD_URL"
@@ -76,7 +76,7 @@ echo "Updating ~/.terraformrc with dev_overrides"
 cat > "$TERRAFORMRC" <<EOF
 provider_installation {
   dev_overrides {
-  "registry.terraform.io/${ORGANISATION_NAME}/${TF_PROVIDER_NAME}" = "$DEV_OVERRIDES_PATH"
+  "registry.terraform.io/${ORGANIZATION_NAME}/${TF_PROVIDER_NAME}" = "$DEV_OVERRIDES_PATH"
   }
   direct {}
 }
