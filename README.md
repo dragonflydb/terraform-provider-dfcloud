@@ -1,6 +1,6 @@
 # terraform-provider-dfcloud
 
-Dragonfly Cloud terraform provider is a terraform provider for managing resources in Dragonfly Cloud.
+Dragonfly Cloud terraform provider is a terraform provider for managing resources in [Dragonfly Cloud](https://dragonflydb.cloud/).
 
 This provider is currently in *beta*. Feel free to try it out and provide feedback through issues.
 
