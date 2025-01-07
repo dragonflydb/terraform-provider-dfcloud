@@ -16,4 +16,4 @@ wget -qO- https://raw.githubusercontent.com/dragonflydb/terraform-provider-dfclo
 curl https://raw.githubusercontent.com/dragonflydb/terraform-provider-dfcloud/refs/heads/main/setup.sh| sh
 ```
 
-Documentation for the provider (and the resources) is present in the [docs](./docs) folder.
+Documentation for this provider and its resources is available in the [docs](./docs) folder, while usage examples are provided in the [examples](./examples) folder.
