@@ -26,7 +26,7 @@ Manages a Dragonfly network.
 - `created_at` (Number) The timestamp when the network was created.
 - `id` (String) The ID of the network.
 - `status` (String) The status of the network.
-- `vpc` (Attributes) The VPC information for the network. (see [below for nested schema](#nestedatt--vpc))
+- `vpc` (Object) The VPC information for the network. (see [below for nested schema](#nestedatt--vpc))
 
 <a id="nestedatt--location"></a>
 ### Nested Schema for `location`
@@ -42,5 +42,5 @@ Required:
 
 Read-Only:
 
-- `account_id` (String) The account ID of the VPC.
-- `resource_id` (String) The resource ID of the VPC.
+- `account_id` (String)
+- `resource_id` (String)
