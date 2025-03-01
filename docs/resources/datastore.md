@@ -3,12 +3,12 @@
 page_title: "dfcloud_datastore Resource - dfcloud"
 subcategory: ""
 description: |-
-  Manages a Dragonfly datastore resource.
+  Manages a Dragonfly datastore.
 ---
 
 # dfcloud_datastore (Resource)
 
-Manages a Dragonfly datastore resource.
+Manages a Dragonfly datastore.
 
 
 
@@ -30,7 +30,7 @@ Manages a Dragonfly datastore resource.
 
 - `addr` (String) The address of the datastore.
 - `created_at` (Number) The timestamp when the datastore was created.
-- `id` (String) The ID of the datastore.
+- `datastore_id` (String) The ID of the datastore.
 - `password` (String, Sensitive) The password for the datastore.
 
 <a id="nestedatt--location"></a>
