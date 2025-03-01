@@ -6,7 +6,7 @@ import (
 	"time"
 
 	dfcloud "github.com/dragonflydb/dfcloud/sdk"
-	"github.com/dragonflydb/dfcloud/terraform/internal/resource_model"
+	"github.com/dragonflydb/dfcloud/terraform-provider-dfcloud/internal/resource_model"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"

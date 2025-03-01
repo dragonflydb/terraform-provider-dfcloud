@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/dragonflydb/dfcloud/terraform/internal/provider"
+	"github.com/dragonflydb/terraform-provider-dfcloud/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
