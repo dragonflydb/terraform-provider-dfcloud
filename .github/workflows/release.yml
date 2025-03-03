@@ -43,9 +43,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           args: release --clean
-          workdir: ./terraform
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_FOR_TERRAFORM_REPO }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           VERSION: ${{ github.event.inputs.version || github.ref }}
 
