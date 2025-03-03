@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	dfcloud "github.com/dragonflydb/dfcloud/sdk"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )

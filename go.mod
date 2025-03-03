@@ -5,15 +5,12 @@ go 1.22.0
 toolchain go1.22.10
 
 require (
-	github.com/dragonflydb/dfcloud/sdk v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/terraform-plugin-framework v1.8.0
 	github.com/hashicorp/terraform-plugin-go v0.25.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
 	github.com/samber/lo v1.47.0
 )
-
-replace github.com/dragonflydb/dfcloud/sdk => ../sdk
 
 require (
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	dfcloud "github.com/dragonflydb/dfcloud/sdk"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
