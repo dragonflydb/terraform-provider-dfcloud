@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -131,6 +131,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						ElementType:         types.StringType,
 						Optional:            true,
 						Computed:            true,
+						Sensitive:           true,
 					},
 				},
 			},
