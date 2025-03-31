@@ -96,10 +96,6 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The ID of the network the datastore should be placed into.",
 				Optional:            true,
 			},
-			"disable_pass_key": schema.BoolAttribute{
-				MarkdownDescription: "Disable the passkey for the datastore.",
-				Optional:            true,
-			},
 			"dragonfly": schema.SingleNestedAttribute{
 				MarkdownDescription: "Dragonfly-specific configuration.",
 				Optional:            true,

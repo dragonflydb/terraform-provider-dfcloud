@@ -21,7 +21,7 @@ type Datastore struct {
 	CreatedAt      types.Int64       `tfsdk:"created_at"`
 	Password       types.String      `tfsdk:"password"`
 	Addr           types.String      `tfsdk:"addr"`
-	DisablePassKey types.Bool        `tfsdk:"disable_pass_key"`
+	DisablePassKey types.Bool        `tfsdk:"disable_passkey"`
 }
 
 type DatastoreLocation struct {
