@@ -12,15 +12,16 @@ import (
 
 // Datastore maps the resource schema data.
 type Datastore struct {
-	ID        types.String      `tfsdk:"id"`
-	Name      types.String      `tfsdk:"name"`
-	NetworkId types.String      `tfsdk:"network_id"`
-	Location  DatastoreLocation `tfsdk:"location"`
-	Tier      DatastoreTier     `tfsdk:"tier"`
-	Dragonfly types.Object      `tfsdk:"dragonfly"`
-	CreatedAt types.Int64       `tfsdk:"created_at"`
-	Password  types.String      `tfsdk:"password"`
-	Addr      types.String      `tfsdk:"addr"`
+	ID             types.String      `tfsdk:"id"`
+	Name           types.String      `tfsdk:"name"`
+	NetworkId      types.String      `tfsdk:"network_id"`
+	Location       DatastoreLocation `tfsdk:"location"`
+	Tier           DatastoreTier     `tfsdk:"tier"`
+	Dragonfly      types.Object      `tfsdk:"dragonfly"`
+	CreatedAt      types.Int64       `tfsdk:"created_at"`
+	Password       types.String      `tfsdk:"password"`
+	Addr           types.String      `tfsdk:"addr"`
+	DisablePassKey types.Bool        `tfsdk:"disable_pass_key"`
 }
 
 type DatastoreLocation struct {
@@ -48,6 +49,7 @@ func (d *Datastore) FromConfig(in *dfcloud.Datastore) {
 	d.Tier.Memory = types.Int64Value(int64(in.Config.Tier.Memory))
 	d.Tier.PerformanceTier = types.StringValue(string(in.Config.Tier.PerformanceTier))
 	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
+	d.DisablePassKey = types.BoolValue(*in.Config.DisablePasskey)
 
 	aclRules, _ := types.ListValueFrom(context.Background(), types.StringType, in.Config.Dragonfly.AclRules)
 	d.Dragonfly = types.ObjectValueMust(map[string]attr.Type{
@@ -97,6 +99,10 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 	if !in.NetworkId.IsNull() {
 		datastore.Config.NetworkID = in.NetworkId.ValueString()
+	}
+
+	if in.DisablePassKey.ValueBool() {
+		datastore.Config.DisablePasskey = lo.ToPtr(in.DisablePassKey.ValueBool())
 	}
 
 	if in.Dragonfly.IsNull() {

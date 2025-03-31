@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -94,6 +94,10 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network the datastore should be placed into.",
+				Optional:            true,
+			},
+			"disable_pass_key": schema.BoolAttribute{
+				MarkdownDescription: "Disable the passkey for the datastore.",
 				Optional:            true,
 			},
 			"dragonfly": schema.SingleNestedAttribute{

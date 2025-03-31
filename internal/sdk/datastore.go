@@ -8,7 +8,6 @@ const (
 	CloudProviderAzure CloudProvider = "azure"
 )
 
-
 // DatastoreLocation represents where the datastore should be provisioned.
 type DatastoreLocation struct {
 	Provider CloudProvider `json:"provider"`
@@ -76,7 +75,7 @@ type DatastoreConfig struct {
 
 	Restore RestoreBackup `json:"restore"`
 
-	DisablePasskey bool `json:"disable_passkey"`
+	DisablePasskey *bool `json:"disable_passkey"`
 }
 
 type RestoreBackup struct {
