@@ -49,7 +49,7 @@ func (d *Datastore) FromConfig(in *dfcloud.Datastore) {
 	d.Tier.Memory = types.Int64Value(int64(in.Config.Tier.Memory))
 	d.Tier.PerformanceTier = types.StringValue(string(in.Config.Tier.PerformanceTier))
 	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
-	d.DisablePassKey = types.BoolValue(*in.Config.DisablePasskey)
+	d.DisablePassKey = types.BoolPointerValue(in.Config.DisablePasskey)
 
 	aclRules, _ := types.ListValueFrom(context.Background(), types.StringType, in.Config.Dragonfly.AclRules)
 	d.Dragonfly = types.ObjectValueMust(map[string]attr.Type{
