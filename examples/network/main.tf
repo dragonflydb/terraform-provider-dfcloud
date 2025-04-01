@@ -8,6 +8,7 @@ terraform {
 
 provider "dfcloud" {
   # Configuration options
+  api_host = "api.dev.dragonflydb.cloud"
 }
 
 
@@ -15,26 +16,32 @@ provider "dfcloud" {
 resource "dfcloud_network" "network" {
   name = "network"
   location = {
-    region   = "us-east-1"
+    region   = "eu-west-1"
     provider = "aws"
   }
   cidr_block = "192.168.0.0/16"
 }
 
-resource "dfcloud_datastore" "datastore" {
-  name = "tf-test-no-pass"
+
+resource "dfcloud_datastore" "test" {
+  name       = "my-cache-datastore-test"
+  network_id = dfcloud_network.network.id
+
+  location = {
+    region             = "eu-west-1"
+    availability_zones = ["euw1-az2"]
+    provider           = "aws"
+  }
+
+  disable_pass_key = true
 
   tier = {
     max_memory_bytes = 3000000000
     performance_tier = "dev"
-    replicas         = 1
+    replicas         = 0
   }
 
-  location = {
-    region   = "us-east-1"
-    provider = "aws"
+  dragonfly = {
+    cache_mode = false
   }
-
-  disable_pass_key = true
-  network_id = dfcloud_network.network.id
 }

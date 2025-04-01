@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -73,16 +75,25 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					"provider": schema.StringAttribute{
 						MarkdownDescription: "The provider for the datastore location.",
 						Required:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"region": schema.StringAttribute{
 						MarkdownDescription: "The region for the datastore location.",
 						Required:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
 					},
 					"availability_zones": schema.ListAttribute{
 						MarkdownDescription: "The availability zones for the datastore location.",
 						ElementType:         types.StringType,
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.List{
+							listplanmodifier.RequiresReplace(),
+						},
 					},
 				},
 			},
@@ -203,7 +214,7 @@ func (r *datastoreResource) Create(ctx context.Context, req resource.CreateReque
 		"status":       respDatastore.Status,
 	})
 
-	plan.FromConfig(respDatastore)
+	plan.FromConfig(ctx, respDatastore)
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
@@ -233,7 +244,7 @@ func (r *datastoreResource) Read(ctx context.Context, req resource.ReadRequest, 
 		"status":       respDatastore.Status,
 	})
 
-	state.FromConfig(respDatastore)
+	state.FromConfig(ctx, respDatastore)
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 }
@@ -284,7 +295,7 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		"status":       respDatastore.Status,
 	})
 
-	plan.FromConfig(respDatastore)
+	plan.FromConfig(ctx, respDatastore)
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
@@ -324,7 +335,7 @@ func (r *datastoreResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	var plan resource_model.Datastore
-	plan.FromConfig(datastore)
+	plan.FromConfig(ctx, datastore)
 	diags := resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
