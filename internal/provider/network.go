@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
-	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
 type NetworkResource struct {
@@ -41,6 +44,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the network.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"location": schema.SingleNestedAttribute{
 				MarkdownDescription: "The location configuration for the network.",
@@ -55,10 +61,16 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Required:            true,
 					},
 				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
+				},
 			},
 			"cidr_block": schema.StringAttribute{
 				MarkdownDescription: "The CIDR block for the network.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"vpc": schema.SingleNestedAttribute{
 				MarkdownDescription: "The VPC information for the network.",
