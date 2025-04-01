@@ -157,53 +157,11 @@ func (r *ConnectionResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *ConnectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state resource_model.Connection
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Delete existing connection
-	err := r.client.DeleteConnection(ctx, state.ConnectionID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("failed to delete old connection", err.Error())
-		return
-	}
-
-	// Wait for deletion
-	waitCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-	_, err = resource_model.WaitUntilConnectionStatus(waitCtx, r.client, state.ConnectionID.ValueString(), dfcloud.ConnectionStatusDeleted)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to wait for connection deletion", err.Error())
-		return
-	}
-
-	// Create new connection
-	connConfig := resource_model.IntoConnectionConfig(plan)
-	respConn, err := r.client.CreateConnection(ctx, connConfig)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to create new connection", err.Error())
-		return
-	}
-
-	// Wait for creation
-	waitCtx2, cancel2 := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel2()
-	respConn, err = resource_model.WaitUntilConnectionStatus(waitCtx2, r.client, respConn.ID, dfcloud.ConnectionStatusInactive)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to wait for new connection", err.Error())
-		return
-	}
-
-	// Update state
-	plan.ConnectionID = types.StringValue(respConn.ID)
-	plan.Status = types.StringValue(string(respConn.Status))
-	plan.StatusDetail = types.StringValue(respConn.StatusDetail)
-	plan.PeerConnID = types.StringValue(respConn.PeerConnectionID)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	// Connections can't be updated
+	resp.Diagnostics.AddError(
+		"Updating a Connection is not supported",
+		"Updating a Connection is not supported",
+	)
 }
 
 func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
