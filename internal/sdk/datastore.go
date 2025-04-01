@@ -8,7 +8,6 @@ const (
 	CloudProviderAzure CloudProvider = "azure"
 )
 
-
 // DatastoreLocation represents where the datastore should be provisioned.
 type DatastoreLocation struct {
 	Provider CloudProvider `json:"provider"`

@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -41,8 +43,18 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The timestamp when the datastore was created.",
 				Computed:            true,
 			},
+			"disable_pass_key": schema.BoolAttribute{
+				MarkdownDescription: "Disable the passkey for the datastore.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			// password cant be set by a user
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password for the datastore.",
+				Optional:            false,
+				Required:            false,
 				Computed:            true,
 				Sensitive:           true,
 			},
@@ -251,8 +263,8 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	datastore := resource_model.IntoDatastoreConfig(plan)
-	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &datastore.Config)
+	updateDatastore := resource_model.IntoDatastoreConfig(plan)
+	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &updateDatastore.Config)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
 		return
