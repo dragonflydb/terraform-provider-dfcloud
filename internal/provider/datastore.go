@@ -41,8 +41,15 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The timestamp when the datastore was created.",
 				Computed:            true,
 			},
+			"disable_pass_key": schema.BoolAttribute{
+				MarkdownDescription: "Disable the passkey for the datastore.",
+				Optional:            true,
+			},
+			// password cant be set by a user
 			"password": schema.StringAttribute{
 				MarkdownDescription: "The password for the datastore.",
+				Optional:            false,
+				Required:            false,
 				Computed:            true,
 				Sensitive:           true,
 			},
