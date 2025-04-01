@@ -47,7 +47,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "Disable the passkey for the datastore.",
 				Optional:            true,
 				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
+					boolplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 			// password cant be set by a user
