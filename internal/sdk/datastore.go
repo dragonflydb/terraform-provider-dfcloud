@@ -14,7 +14,7 @@ type DatastoreLocation struct {
 	Region   string        `json:"region"`
 	// AvailabilityZones indicates which availability zones the datastore
 	// should use in priority order.
-	AvailabilityZones []string `json:"availability_zones"`
+	AvailabilityZones []string `json:"availability_zones" mapstructure:"availability_zones"`
 }
 
 type PerformanceTier string

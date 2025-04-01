@@ -36,21 +36,21 @@ type DatastoreTier struct {
 	Replicas        types.Int64  `tfsdk:"replicas"`
 }
 
-func (d *Datastore) FromConfig(in *dfcloud.Datastore) {
+func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.ID = types.StringValue(in.ID)
 	d.Name = types.StringValue(in.Config.Name)
 	d.NetworkId = types.StringNull()
 	d.CreatedAt = types.Int64Value(in.CreatedAt)
 	d.Location.Provider = types.StringValue(string(in.Config.Location.Provider))
 	d.Location.Region = types.StringValue(in.Config.Location.Region)
-	d.Location.AvailabilityZones, _ = types.ListValueFrom(context.Background(), types.StringType, in.Config.Location.AvailabilityZones)
+	d.Location.AvailabilityZones, _ = types.ListValueFrom(ctx, types.StringType, in.Config.Location.AvailabilityZones)
 	d.Addr = types.StringValue(in.Addr)
 	d.Password = types.StringValue(in.Key)
 	d.Tier.Memory = types.Int64Value(int64(in.Config.Tier.Memory))
 	d.Tier.PerformanceTier = types.StringValue(string(in.Config.Tier.PerformanceTier))
 	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
 
-	aclRules, _ := types.ListValueFrom(context.Background(), types.StringType, in.Config.Dragonfly.AclRules)
+	aclRules, _ := types.ListValueFrom(ctx, types.StringType, in.Config.Dragonfly.AclRules)
 	d.Dragonfly = types.ObjectValueMust(map[string]attr.Type{
 		"cache_mode": types.BoolType,
 		"tls":        types.BoolType,
@@ -74,19 +74,13 @@ func (d *Datastore) FromConfig(in *dfcloud.Datastore) {
 }
 
 func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
-	var zones []string
-	for _, z := range in.Location.AvailabilityZones.Elements() {
-		zones = append(zones, z.String())
-	}
-
 	datastore := &dfcloud.Datastore{
 		ID: in.ID.ValueString(),
 		Config: dfcloud.DatastoreConfig{
 			Name: in.Name.ValueString(),
 			Location: dfcloud.DatastoreLocation{
-				Provider:          dfcloud.CloudProvider(in.Location.Provider.ValueString()),
-				Region:            in.Location.Region.ValueString(),
-				AvailabilityZones: zones,
+				Provider: dfcloud.CloudProvider(in.Location.Provider.ValueString()),
+				Region:   in.Location.Region.ValueString(),
 			},
 			Tier: dfcloud.DatastoreTier{
 				Memory:          uint64(in.Tier.Memory.ValueInt64()),
@@ -95,6 +89,8 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 			},
 		},
 	}
+
+	_ = in.Location.AvailabilityZones.ElementsAs(context.Background(), &datastore.Config.Location.AvailabilityZones, false)
 
 	if !in.NetworkId.IsNull() {
 		datastore.Config.NetworkID = in.NetworkId.ValueString()
