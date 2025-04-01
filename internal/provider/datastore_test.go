@@ -67,7 +67,9 @@ func TestAcc_DatastoreResource(t *testing.T) {
 					testCheckDatastoreExists("dfcloud_datastore.test"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "name", name),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.provider", "aws"),
-					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "us-east-1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "eu-west-1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "3000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
@@ -96,7 +98,8 @@ resource "dfcloud_datastore" "test" {
   
   location = {
     provider = "aws"
-    region   = "us-east-1"
+    region   = "eu-west-1"
+	availability_zones = ["euw1-az2"]
   }
 
   tier = {
