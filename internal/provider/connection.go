@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
-	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
+	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -26,6 +29,7 @@ func (r *ConnectionResource) Metadata(ctx context.Context, req resource.Metadata
 func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Dragonfly network connection.",
+
 		Attributes: map[string]schema.Attribute{
 			"connection_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the connection.",
@@ -46,10 +50,16 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the connection.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network to connect to.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"peer": schema.SingleNestedAttribute{
 				MarkdownDescription: "The VPC to connect to.",
@@ -67,6 +77,9 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						MarkdownDescription: "The region of the target VPC.",
 						Optional:            true,
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.RequiresReplace(),
 				},
 			},
 		},
