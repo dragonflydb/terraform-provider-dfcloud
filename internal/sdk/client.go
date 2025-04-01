@@ -117,6 +117,12 @@ func (c *Client) GetDatastore(ctx context.Context, id string) (*Datastore, error
 	if err := json.NewDecoder(r).Decode(&datastore); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
+
+	if datastore.Key == "" {
+		// only way to disable passkey
+		datastore.Config.DisablePasskey = true
+	}
+
 	return datastore, nil
 }
 
@@ -133,6 +139,11 @@ func (c *Client) CreateDatastore(ctx context.Context, config *DatastoreConfig) (
 	if err := json.NewDecoder(r).Decode(&datastore); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
+	if datastore.Key == "" {
+		// only way to disable passkey
+		datastore.Config.DisablePasskey = true
+	}
+
 	return &datastore, nil
 }
 
@@ -148,6 +159,11 @@ func (c *Client) UpdateDatastore(ctx context.Context, id string, config *Datasto
 	var datastore Datastore
 	if err := json.NewDecoder(r).Decode(&datastore); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	if datastore.Key == "" {
+		// only way to disable passkey
+		datastore.Config.DisablePasskey = true
 	}
 	return &datastore, nil
 }

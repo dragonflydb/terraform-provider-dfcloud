@@ -258,8 +258,13 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	datastore := resource_model.IntoDatastoreConfig(plan)
-	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &datastore.Config)
+	updateDatastore := resource_model.IntoDatastoreConfig(plan)
+	if err := dfcloud.CheckValidUpdateDatastore(ctx, *respDatastore, *updateDatastore); err != nil {
+		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
+		return
+	}
+
+	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &updateDatastore.Config)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
 		return
