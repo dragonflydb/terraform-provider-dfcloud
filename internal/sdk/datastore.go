@@ -1,10 +1,5 @@
 package sdk
 
-import (
-	"context"
-	"fmt"
-)
-
 type CloudProvider string
 
 const (
@@ -146,12 +141,4 @@ type Datastore struct {
 	Dashboard *DatastoreDashboard `json:"dashboard"`
 
 	Config DatastoreConfig `json:"config"`
-}
-
-func CheckValidUpdateDatastore(ctx context.Context, oldDatastore Datastore, newDatastore Datastore) error {
-	if oldDatastore.Config.DisablePasskey != newDatastore.Config.DisablePasskey {
-		return fmt.Errorf("cannot update disable passkey of datastore %s", oldDatastore.ID)
-	}
-
-	return nil
 }

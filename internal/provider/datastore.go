@@ -9,6 +9,8 @@ import (
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -44,6 +46,9 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"disable_pass_key": schema.BoolAttribute{
 				MarkdownDescription: "Disable the passkey for the datastore.",
 				Optional:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			// password cant be set by a user
 			"password": schema.StringAttribute{
@@ -259,11 +264,6 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	updateDatastore := resource_model.IntoDatastoreConfig(plan)
-	if err := dfcloud.CheckValidUpdateDatastore(ctx, *respDatastore, *updateDatastore); err != nil {
-		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
-		return
-	}
-
 	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &updateDatastore.Config)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
