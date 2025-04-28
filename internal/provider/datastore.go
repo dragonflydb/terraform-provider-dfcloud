@@ -158,6 +158,24 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					},
 				},
 			},
+			"maintenance_window": schema.SingleNestedAttribute{
+				MarkdownDescription: "The maintenance window configuration for the datastore.",
+				Optional:            true,
+				Attributes: map[string]schema.Attribute{
+					"weekday": schema.Int64Attribute{
+						MarkdownDescription: "The day of the week to start the maintenance window. 0-6, 0 is Sunday.",
+						Optional:            true,
+					},
+					"hour": schema.Int64Attribute{
+						MarkdownDescription: "The hour of the day to start the maintenance window. 0-23.",
+						Optional:            true,
+					},
+					"duration_hours": schema.Int64Attribute{
+						MarkdownDescription: "DurationHours is the duration of the maintenance window in hours. 0 means maintenance is always allowed.",
+						Optional:            true,
+					},
+				},
+			},
 		},
 	}
 }
