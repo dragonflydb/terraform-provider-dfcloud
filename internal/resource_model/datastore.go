@@ -57,9 +57,15 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 			"hour":           types.Int64Type,
 			"duration_hours": types.Int64Type,
 		}, map[string]attr.Value{
-			"weekday":        types.Int64Value(int64(*in.Config.MaintenanceWindow.Weekday)),
-			"hour":           types.Int64Value(int64(*in.Config.MaintenanceWindow.Hour)),
-			"duration_hours": types.Int64Value(int64(*in.Config.MaintenanceWindow.DurationHours)),
+			"weekday":        types.Int64Value(int64(lo.FromPtr(in.Config.MaintenanceWindow.Weekday))),
+			"hour":           types.Int64Value(int64(lo.FromPtr(in.Config.MaintenanceWindow.Hour))),
+			"duration_hours": types.Int64Value(int64(lo.FromPtr(in.Config.MaintenanceWindow.DurationHours))),
+		})
+	} else {
+		d.MaintenanceWindow = types.ObjectNull(map[string]attr.Type{
+			"weekday":        types.Int64Type,
+			"hour":           types.Int64Type,
+			"duration_hours": types.Int64Type,
 		})
 	}
 
