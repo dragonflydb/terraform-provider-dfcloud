@@ -148,14 +148,6 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 		datastore.Config.Dragonfly.AclRules = &rules
 	}
 
-	if in.MaintenanceWindow.IsNull() {
-		in.MaintenanceWindow = types.ObjectValueMust(map[string]attr.Type{
-			"weekday":        types.Int64Type,
-			"hour":           types.Int64Type,
-			"duration_hours": types.Int64Type,
-		}, map[string]attr.Value{})
-	}
-
 	if in.MaintenanceWindow.Attributes()["weekday"] != nil {
 		datastore.Config.MaintenanceWindow.Weekday = lo.ToPtr(int(in.MaintenanceWindow.Attributes()["weekday"].(types.Int64).ValueInt64()))
 	}
