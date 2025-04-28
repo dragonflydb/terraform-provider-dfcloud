@@ -52,7 +52,7 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
 
 	if in.Config.MaintenanceWindow.DurationHours != nil || in.Config.MaintenanceWindow.Hour != nil || in.Config.MaintenanceWindow.Weekday != nil {
-		d.MaintenanceWindow, _ = types.ObjectValueFrom(ctx, map[string]attr.Type{
+		d.MaintenanceWindow = types.ObjectValueMust(map[string]attr.Type{
 			"weekday":        types.Int64Type,
 			"hour":           types.Int64Type,
 			"duration_hours": types.Int64Type,
