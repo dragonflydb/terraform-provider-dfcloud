@@ -75,7 +75,19 @@ type DatastoreConfig struct {
 
 	Restore RestoreBackup `json:"restore"`
 
+	MaintenanceWindow MaintenanceWindow `json:"maintenance_window,omitempty"`
+
 	DisablePasskey bool `json:"disable_passkey"`
+}
+
+type MaintenanceWindow struct {
+	// Weekday is the day of the week to start the maintenance window. 0-6, 0 is Sunday.
+	Weekday *int `json:"weekday"`
+	// Hour is the hour of the day to start the maintenance window. 0-23.
+	Hour *int `json:"hour"`
+	// DurationHours is the duration of the maintenance window in hours.
+	// 0 means maintenance is always allowed.
+	DurationHours *int `json:"duration_hours"`
 }
 
 type RestoreBackup struct {
