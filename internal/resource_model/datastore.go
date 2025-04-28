@@ -41,6 +41,7 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.ID = types.StringValue(in.ID)
 	d.Name = types.StringValue(in.Config.Name)
 	d.NetworkId = types.StringNull()
+	d.Tier.Replicas = types.Int64Null()
 	d.CreatedAt = types.Int64Value(in.CreatedAt)
 	d.Location.Provider = types.StringValue(string(in.Config.Location.Provider))
 	d.Location.Region = types.StringValue(in.Config.Location.Region)
@@ -49,7 +50,10 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.Password = types.StringValue(in.Key)
 	d.Tier.Memory = types.Int64Value(int64(in.Config.Tier.Memory))
 	d.Tier.PerformanceTier = types.StringValue(string(in.Config.Tier.PerformanceTier))
-	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
+
+	if in.Config.Tier.Replicas != nil {
+		d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
+	}
 
 	if in.Config.MaintenanceWindow.DurationHours != nil || in.Config.MaintenanceWindow.Hour != nil || in.Config.MaintenanceWindow.Weekday != nil {
 		d.MaintenanceWindow = types.ObjectValueMust(map[string]attr.Type{
