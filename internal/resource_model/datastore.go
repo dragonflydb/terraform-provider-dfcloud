@@ -51,15 +51,17 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.Tier.PerformanceTier = types.StringValue(string(in.Config.Tier.PerformanceTier))
 	d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
 
-	d.MaintenanceWindow, _ = types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"weekday":        types.Int64Type,
-		"hour":           types.Int64Type,
-		"duration_hours": types.Int64Type,
-	}, map[string]attr.Value{
-		"weekday":        types.Int64Value(int64(*in.Config.MaintenanceWindow.Weekday)),
-		"hour":           types.Int64Value(int64(*in.Config.MaintenanceWindow.Hour)),
-		"duration_hours": types.Int64Value(int64(*in.Config.MaintenanceWindow.DurationHours)),
-	})
+	if in.Config.MaintenanceWindow.DurationHours != nil || in.Config.MaintenanceWindow.Hour != nil || in.Config.MaintenanceWindow.Weekday != nil {
+		d.MaintenanceWindow, _ = types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"weekday":        types.Int64Type,
+			"hour":           types.Int64Type,
+			"duration_hours": types.Int64Type,
+		}, map[string]attr.Value{
+			"weekday":        types.Int64Value(int64(*in.Config.MaintenanceWindow.Weekday)),
+			"hour":           types.Int64Value(int64(*in.Config.MaintenanceWindow.Hour)),
+			"duration_hours": types.Int64Value(int64(*in.Config.MaintenanceWindow.DurationHours)),
+		})
+	}
 
 	aclRules, _ := types.ListValueFrom(ctx, types.StringType, in.Config.Dragonfly.AclRules)
 	d.Dragonfly = types.ObjectValueMust(map[string]attr.Type{
@@ -146,20 +148,26 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 		datastore.Config.Dragonfly.AclRules = &rules
 	}
 
-	if in.Dragonfly.Attributes()["maintenance_window"] != nil {
-		maintenanceWindow := in.Dragonfly.Attributes()["maintenance_window"].(types.Object)
-		if !maintenanceWindow.IsNull() {
-			maintenanceWindowMap := maintenanceWindow.Attributes()
-			weekday := maintenanceWindowMap["weekday"].(types.Int64)
-			hour := maintenanceWindowMap["hour"].(types.Int64)
-			durationHours := maintenanceWindowMap["duration_hours"].(types.Int64)
-			datastore.Config.MaintenanceWindow = dfcloud.MaintenanceWindow{
-				Weekday:       lo.ToPtr(int(weekday.ValueInt64())),
-				Hour:          lo.ToPtr(int(hour.ValueInt64())),
-				DurationHours: lo.ToPtr(int(durationHours.ValueInt64())),
-			}
-		}
+	if in.MaintenanceWindow.IsNull() {
+		in.MaintenanceWindow = types.ObjectValueMust(map[string]attr.Type{
+			"weekday":        types.Int64Type,
+			"hour":           types.Int64Type,
+			"duration_hours": types.Int64Type,
+		}, map[string]attr.Value{})
 	}
+
+	if in.MaintenanceWindow.Attributes()["weekday"] != nil {
+		datastore.Config.MaintenanceWindow.Weekday = lo.ToPtr(int(in.MaintenanceWindow.Attributes()["weekday"].(types.Int64).ValueInt64()))
+	}
+
+	if in.MaintenanceWindow.Attributes()["hour"] != nil {
+		datastore.Config.MaintenanceWindow.Hour = lo.ToPtr(int(in.MaintenanceWindow.Attributes()["hour"].(types.Int64).ValueInt64()))
+	}
+
+	if in.MaintenanceWindow.Attributes()["duration_hours"] != nil {
+		datastore.Config.MaintenanceWindow.DurationHours = lo.ToPtr(int(in.MaintenanceWindow.Attributes()["duration_hours"].(types.Int64).ValueInt64()))
+	}
+
 	return datastore
 }
 
