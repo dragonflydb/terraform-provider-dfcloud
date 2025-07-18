@@ -327,6 +327,7 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 	err := r.client.DeleteDatastore(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Datastore", err.Error())
+		return
 	}
 
 	waitForDatastoreStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
@@ -334,6 +335,7 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 	_, err = resource_model.WaitForDatastoreStatus(waitForDatastoreStatusCtx, r.client, state.ID.ValueString(), dfcloud.DatastoreStatusDeleted)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Deleting Datastore", err.Error())
+		return
 	}
 
 	tflog.Info(ctx, "deleted datastore", map[string]interface{}{
