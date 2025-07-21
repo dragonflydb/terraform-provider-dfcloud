@@ -100,6 +100,7 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	client, ok := req.ProviderData.(*dfcloud.Client)
 	if !ok {
 		resp.Diagnostics.AddError("failed to get provider", "failed to get provider")
+		return
 	}
 
 	r.client = client
@@ -110,6 +111,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("failed to get plan into state", "failed to get plan into state")
+		return
 	}
 
 	networkConfig := resource_model.IntoNetworkConfig(state)
@@ -190,6 +192,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	_, err = resource_model.WaitUntilNetworkStatus(waitForNetworkStatusCtx, r.client, state.Id.ValueString(), dfcloud.NetworkStatusDeleted)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to wait for network deletion", err.Error())
+		return
 	}
 }
 

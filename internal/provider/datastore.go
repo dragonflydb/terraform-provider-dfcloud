@@ -278,10 +278,12 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 	respDatastore, err := r.client.GetDatastore(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
+		return
 	}
 
 	if respDatastore.Status == dfcloud.DatastoreStatusUpdating || respDatastore.Status == dfcloud.DatastoreStatusPending || respDatastore.Status == dfcloud.DatastoreStatusDeleting {
 		resp.Diagnostics.AddError("Error Reading Datastore", "Datastore is not active")
+		return
 	}
 
 	var plan resource_model.Datastore
