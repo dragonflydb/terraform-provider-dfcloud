@@ -192,6 +192,7 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	_, err = resource_model.WaitUntilConnectionStatus(waitForConnectionStatusCtx, r.client, state.ConnectionID.ValueString(), dfcloud.ConnectionStatusDeleted)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to wait for connection", err.Error())
+		return
 	}
 }
 
