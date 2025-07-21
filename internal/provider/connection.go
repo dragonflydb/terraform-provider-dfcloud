@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type ConnectionResource struct {
@@ -173,8 +175,15 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	err := r.client.DeleteConnection(ctx, state.ConnectionID.ValueString())
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		tflog.Warn(ctx, "connection is already deleted", map[string]interface{}{
+			"connection_id": state.ConnectionID.ValueString(),
+		})
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete connection", err.Error())
+		return
 	}
 
 	// wait until connection is deleted
@@ -184,7 +193,6 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	if err != nil {
 		resp.Diagnostics.AddError("failed to wait for connection", err.Error())
 	}
-
 }
 
 func (r *ConnectionResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

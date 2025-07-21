@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type NetworkResource struct {
@@ -170,8 +172,15 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	err := r.client.DeleteNetwork(ctx, state.Id.ValueString())
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		tflog.Warn(ctx, "network is already deleted", map[string]interface{}{
+			"network_id": state.Id.ValueString(),
+		})
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete network", err.Error())
+		return
 	}
 
 	// wait until network is deleted

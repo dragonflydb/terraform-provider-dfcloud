@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -75,6 +76,8 @@ type Client struct {
 
 	httpClient *http.Client
 }
+
+var ErrNotFound = errors.New("not found")
 
 // NewClient creates a Dragonfly cloud client.
 //
@@ -324,6 +327,9 @@ func (c *Client) request(
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, ErrNotFound
+		}
 		if resp.StatusCode >= http.StatusBadRequest &&
 			resp.StatusCode < http.StatusInternalServerError {
 			var errResp errorResponse
