@@ -17,6 +17,8 @@ type Datastore struct {
 	NetworkId         types.String      `tfsdk:"network_id"`
 	Location          DatastoreLocation `tfsdk:"location"`
 	Tier              DatastoreTier     `tfsdk:"tier"`
+	Cluster           types.Bool        `tfsdk:"cluster"`
+	ShardMemory       types.Int64       `tfsdk:"shard_memory"`
 	Dragonfly         types.Object      `tfsdk:"dragonfly"`
 	CreatedAt         types.Int64       `tfsdk:"created_at"`
 	Password          types.String      `tfsdk:"password"`
@@ -42,6 +44,16 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.Name = types.StringValue(in.Config.Name)
 	d.NetworkId = types.StringNull()
 	d.Tier.Replicas = types.Int64Null()
+	if cluster := in.Config.Cluster.Enabled; cluster != nil && *cluster {
+		d.Cluster = types.BoolValue(*in.Config.Cluster.Enabled)
+	} else {
+		d.Cluster = types.BoolNull()
+	}
+	if shardMemory := in.Config.Cluster.ShardMemory; shardMemory != nil && *shardMemory != 0 {
+		d.ShardMemory = types.Int64Value(*shardMemory)
+	} else {
+		d.ShardMemory = types.Int64Null()
+	}
 	d.CreatedAt = types.Int64Value(in.CreatedAt)
 	d.Location.Provider = types.StringValue(string(in.Config.Location.Provider))
 	d.Location.Region = types.StringValue(in.Config.Location.Region)
@@ -93,7 +105,6 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	if in.Config.NetworkID != "" {
 		d.NetworkId = types.StringValue(in.Config.NetworkID)
 	}
-
 }
 
 func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
@@ -104,6 +115,10 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 			Location: dfcloud.DatastoreLocation{
 				Provider: dfcloud.CloudProvider(in.Location.Provider.ValueString()),
 				Region:   in.Location.Region.ValueString(),
+			},
+			Cluster: dfcloud.DatastoreClusterConfig{
+				Enabled:     in.Cluster.ValueBoolPointer(),
+				ShardMemory: in.ShardMemory.ValueInt64Pointer(),
 			},
 			Tier: dfcloud.DatastoreTier{
 				Memory:          uint64(in.Tier.Memory.ValueInt64()),
