@@ -8,6 +8,11 @@ const (
 	CloudProviderAzure CloudProvider = "azure"
 )
 
+type DatastoreClusterConfig struct {
+	Enabled     *bool  `json:"enabled"`
+	ShardMemory *int64 `json:"shard_memory,omitempty"`
+}
+
 // DatastoreLocation represents where the datastore should be provisioned.
 type DatastoreLocation struct {
 	Provider CloudProvider `json:"provider"`
@@ -17,8 +22,10 @@ type DatastoreLocation struct {
 	AvailabilityZones []string `json:"availability_zones" mapstructure:"availability_zones"`
 }
 
-type PerformanceTier string
-type AclRuleArray []string
+type (
+	PerformanceTier string
+	AclRuleArray    []string
+)
 
 const (
 	PerformanceTierDev      PerformanceTier = "dev"
@@ -65,9 +72,10 @@ type DatastoreConfig struct {
 	Name string `json:"name"`
 	// NetworkID is an optional ID of a dedicated network to provision the
 	// datastore in.
-	NetworkID string            `json:"network_id"`
-	Location  DatastoreLocation `json:"location"`
-	Tier      DatastoreTier     `json:"tier"`
+	NetworkID string                 `json:"network_id"`
+	Location  DatastoreLocation      `json:"location"`
+	Tier      DatastoreTier          `json:"tier"`
+	Cluster   DatastoreClusterConfig `json:"cluster"`
 	// Dragonfly contains the Dragonfly node configuration.
 	Dragonfly DatastoreDragonflyConfig `json:"dragonfly"`
 

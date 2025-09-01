@@ -17,12 +17,17 @@ type Datastore struct {
 	NetworkId         types.String      `tfsdk:"network_id"`
 	Location          DatastoreLocation `tfsdk:"location"`
 	Tier              DatastoreTier     `tfsdk:"tier"`
+	Cluster           types.Object      `tfsdk:"cluster"`
 	Dragonfly         types.Object      `tfsdk:"dragonfly"`
 	CreatedAt         types.Int64       `tfsdk:"created_at"`
 	Password          types.String      `tfsdk:"password"`
 	Addr              types.String      `tfsdk:"addr"`
 	DisablePassKey    types.Bool        `tfsdk:"disable_pass_key"`
 	MaintenanceWindow types.Object      `tfsdk:"maintenance_window"`
+}
+
+type DatastoreClusterConfig struct {
+	ShardMemory types.Int64 `tfsdk:"shard_memory"`
 }
 
 type DatastoreLocation struct {
@@ -42,6 +47,21 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	d.Name = types.StringValue(in.Config.Name)
 	d.NetworkId = types.StringNull()
 	d.Tier.Replicas = types.Int64Null()
+	if in.Config.Cluster.Enabled != nil && *in.Config.Cluster.Enabled {
+		shardMemory := in.Config.Cluster.ShardMemory
+		if shardMemory != nil && *shardMemory == 0 {
+			shardMemory = nil
+		}
+		d.Cluster = types.ObjectValueMust(map[string]attr.Type{
+			"shard_memory": types.Int64Type,
+		}, map[string]attr.Value{
+			"shard_memory": types.Int64PointerValue(shardMemory),
+		})
+	} else {
+		d.Cluster = types.ObjectNull(map[string]attr.Type{
+			"shard_memory": types.Int64Type,
+		})
+	}
 	d.CreatedAt = types.Int64Value(in.CreatedAt)
 	d.Location.Provider = types.StringValue(string(in.Config.Location.Provider))
 	d.Location.Region = types.StringValue(in.Config.Location.Region)
@@ -93,7 +113,6 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	if in.Config.NetworkID != "" {
 		d.NetworkId = types.StringValue(in.Config.NetworkID)
 	}
-
 }
 
 func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
@@ -112,7 +131,13 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 			},
 		},
 	}
-
+	if !in.Cluster.IsNull() {
+		enabledCluster := true
+		if in.Cluster.Attributes()["shard_memory"] != nil {
+			datastore.Config.Cluster.ShardMemory = in.Cluster.Attributes()["shard_memory"].(types.Int64).ValueInt64Pointer()
+		}
+		datastore.Config.Cluster.Enabled = &enabledCluster
+	}
 	_ = in.Location.AvailabilityZones.ElementsAs(context.Background(), &datastore.Config.Location.AvailabilityZones, false)
 
 	if !in.NetworkId.IsNull() {

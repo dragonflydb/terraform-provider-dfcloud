@@ -68,6 +68,19 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The name of the datastore.",
 				Required:            true,
 			},
+			"cluster": schema.SingleNestedAttribute{
+				MarkdownDescription: "The cluster configuration for the datastore.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Object{
+					clusterPlanModifier{},
+				},
+				Attributes: map[string]schema.Attribute{
+					"shard_memory": schema.Int64Attribute{
+						MarkdownDescription: "The cluster shard memory.",
+						Optional:            true,
+					},
+				},
+			},
 			"location": schema.SingleNestedAttribute{
 				MarkdownDescription: "The location configuration for the datastore.",
 				Required:            true,
@@ -364,6 +377,32 @@ func (r *datastoreResource) ImportState(ctx context.Context, req resource.Import
 	plan.FromConfig(ctx, datastore)
 	diags := resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+}
+
+// clusterPlanModifier is a custom plan modifier for the 'cluster' attribute.
+type clusterPlanModifier struct{}
+
+// Description returns a human-readable description of the plan modifier.
+func (m clusterPlanModifier) Description(ctx context.Context) string {
+	return "Requires replacement if the cluster block is added or removed."
+}
+
+// MarkdownDescription returns a markdown-formatted description of the plan modifier.
+func (m clusterPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Requires replacement if the `cluster` block is added or removed."
+}
+
+// PlanModifyObject implements the plan modification logic.
+func (m clusterPlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	// Do not replace if the plan is unknown.
+	if req.PlanValue.IsUnknown() {
+		return
+	}
+
+	// Replace if the cluster block is added or removed.
+	if req.StateValue.IsNull() != req.PlanValue.IsNull() {
+		resp.RequiresReplace = true
+	}
 }
 
 var (

@@ -91,6 +91,70 @@ func TestAcc_DatastoreResource(t *testing.T) {
 	})
 }
 
+func TestAcc_DatastoreResource_withCluster(t *testing.T) {
+	name := "tf-test-cluster-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy:             testCheckDatastoreDestroy,
+		Steps: []resource.TestStep{
+			// Create and Read testing
+			{
+				Config: testAccDatastoreClusterResourceConfig(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckDatastoreExists("dfcloud_datastore.test"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "name", name),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.provider", "aws"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "eu-west-1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "cluster.shard_memory", "3000000000"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "6000000000"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.tls", "false"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "id"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "addr"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "created_at"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "password"),
+				),
+			},
+			// Import State
+			{
+				ResourceName:      "dfcloud_datastore.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccDatastoreClusterResourceConfig(name string) string {
+	return fmt.Sprintf(`
+resource "dfcloud_datastore" "test" {
+  name = %[1]q
+
+  cluster = {
+    shard_memory = 3000000000
+  }
+  
+  location = {
+    provider = "aws"
+    region   = "eu-west-1"
+    availability_zones = ["euw1-az2"]
+  }
+
+  tier = {
+    max_memory_bytes  = 6000000000  # 6GB
+    performance_tier = "dev"
+    replicas        = 1
+  }
+}
+`, name)
+}
+
 func testAccDatastoreResourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "dfcloud_datastore" "test" {
@@ -99,7 +163,7 @@ resource "dfcloud_datastore" "test" {
   location = {
     provider = "aws"
     region   = "eu-west-1"
-	availability_zones = ["euw1-az2"]
+    availability_zones = ["euw1-az2"]
   }
 
   tier = {
