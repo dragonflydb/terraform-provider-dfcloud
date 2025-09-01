@@ -10,7 +10,7 @@ const (
 
 type DatastoreClusterConfig struct {
 	Enabled     *bool  `json:"enabled"`
-	ShardMemory *int64 `json:"shard_memory"`
+	ShardMemory *int64 `json:"shard_memory,omitempty"`
 }
 
 // DatastoreLocation represents where the datastore should be provisioned.

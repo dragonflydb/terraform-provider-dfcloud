@@ -23,12 +23,11 @@ Manages a Dragonfly datastore resource.
 
 ### Optional
 
-- `cluster` (Boolean) Enable dragonfly swarm cluster.
+- `cluster` (Attributes) The cluster configuration for the datastore. (see [below for nested schema](#nestedatt--cluster))
 - `disable_pass_key` (Boolean) Disable the passkey for the datastore.
 - `dragonfly` (Attributes) Dragonfly-specific configuration. (see [below for nested schema](#nestedatt--dragonfly))
 - `maintenance_window` (Attributes) The maintenance window configuration for the datastore. (see [below for nested schema](#nestedatt--maintenance_window))
 - `network_id` (String) The ID of the network the datastore should be placed into.
-- `shard_memory` (Number) The maximum individual shard memory within a cluster.
 
 ### Read-Only
 
@@ -61,6 +60,14 @@ Required:
 Optional:
 
 - `replicas` (Number) The number of replicas for the datastore. Default is 0.
+
+
+<a id="nestedatt--cluster"></a>
+### Nested Schema for `cluster`
+
+Optional:
+
+- `shard_memory` (Number) The cluster shard memory.
 
 
 <a id="nestedatt--dragonfly"></a>

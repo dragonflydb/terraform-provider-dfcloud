@@ -110,8 +110,7 @@ func TestAcc_DatastoreResource_withCluster(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
-					resource.TestCheckResourceAttr("dfcloud_datastore.test", "cluster", "true"),
-					resource.TestCheckResourceAttr("dfcloud_datastore.test", "shard_memory", "3000000000"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "cluster.shard_memory", "3000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "6000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
@@ -137,9 +136,9 @@ func testAccDatastoreClusterResourceConfig(name string) string {
 resource "dfcloud_datastore" "test" {
   name = %[1]q
 
-  cluster = true
-
-  shard_memory = "3000000000"
+  cluster = {
+    shard_memory = 3000000000
+  }
   
   location = {
     provider = "aws"

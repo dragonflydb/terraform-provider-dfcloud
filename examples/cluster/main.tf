@@ -23,9 +23,9 @@ resource "dfcloud_datastore" "cache-cluster" {
     replicas         = 1
   }
 
-  cluster = true
-
-  shard_memory = 3000000000
+  cluster = {
+    shard_memory = 3000000000
+  }
 
   dragonfly = {
     cache_mode = true

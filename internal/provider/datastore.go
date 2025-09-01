@@ -8,53 +8,14 @@ import (
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
-
-type requireClusterForShardMemoryValidator struct{}
-
-func (v requireClusterForShardMemoryValidator) Description(ctx context.Context) string {
-	return "shard_memory can only be set if cluster is true"
-}
-
-func (v requireClusterForShardMemoryValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v requireClusterForShardMemoryValidator) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
-	// If the value is null or unknown, there is nothing to validate.
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	// Get the value of the 'cluster' attribute.
-	var cluster types.Bool
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("cluster"), &cluster)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// If 'cluster' is not enabled, 'shard_memory' cannot be set.
-	if !cluster.ValueBool() {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid Attribute Configuration",
-			"'shard_memory' can only be set when 'cluster' is enabled.",
-		)
-	}
-}
-
-func requireClusterForShardMemory() validator.Int64 {
-	return requireClusterForShardMemoryValidator{}
-}
 
 // NewDatastoreResource is a helper function to simplify the provider implementation.
 func NewDatastoreResource() resource.Resource {
@@ -107,6 +68,19 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "The name of the datastore.",
 				Required:            true,
 			},
+			"cluster": schema.SingleNestedAttribute{
+				MarkdownDescription: "The cluster configuration for the datastore.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.Object{
+					clusterPlanModifier{},
+				},
+				Attributes: map[string]schema.Attribute{
+					"shard_memory": schema.Int64Attribute{
+						MarkdownDescription: "The cluster shard memory.",
+						Optional:            true,
+					},
+				},
+			},
 			"location": schema.SingleNestedAttribute{
 				MarkdownDescription: "The location configuration for the datastore.",
 				Required:            true,
@@ -150,20 +124,6 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 						Computed:            true,
 					},
-				},
-			},
-			"cluster": schema.BoolAttribute{
-				MarkdownDescription: "Enable dragonfly swarm cluster.",
-				Optional:            true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.RequiresReplace(),
-				},
-			},
-			"shard_memory": schema.Int64Attribute{
-				MarkdownDescription: "The maximum individual shard memory within a cluster.",
-				Optional:            true,
-				Validators: []validator.Int64{
-					requireClusterForShardMemory(),
 				},
 			},
 			"network_id": schema.StringAttribute{
@@ -417,6 +377,32 @@ func (r *datastoreResource) ImportState(ctx context.Context, req resource.Import
 	plan.FromConfig(ctx, datastore)
 	diags := resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+}
+
+// clusterPlanModifier is a custom plan modifier for the 'cluster' attribute.
+type clusterPlanModifier struct{}
+
+// Description returns a human-readable description of the plan modifier.
+func (m clusterPlanModifier) Description(ctx context.Context) string {
+	return "Requires replacement if the cluster block is added or removed."
+}
+
+// MarkdownDescription returns a markdown-formatted description of the plan modifier.
+func (m clusterPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Requires replacement if the `cluster` block is added or removed."
+}
+
+// PlanModifyObject implements the plan modification logic.
+func (m clusterPlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	// Do not replace if the plan is unknown.
+	if req.PlanValue.IsUnknown() {
+		return
+	}
+
+	// Replace if the cluster block is added or removed.
+	if req.StateValue.IsNull() != req.PlanValue.IsNull() {
+		resp.RequiresReplace = true
+	}
 }
 
 var (
