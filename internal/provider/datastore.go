@@ -11,6 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -40,10 +43,16 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the datastore.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"created_at": schema.Int64Attribute{
 				MarkdownDescription: "The timestamp when the datastore was created.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
+				},
 			},
 			"disable_pass_key": schema.BoolAttribute{
 				MarkdownDescription: "Disable the passkey for the datastore.",
@@ -59,10 +68,16 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required:            false,
 				Computed:            true,
 				Sensitive:           true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"addr": schema.StringAttribute{
 				MarkdownDescription: "The address of the datastore.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the datastore.",
@@ -134,31 +149,49 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				MarkdownDescription: "Dragonfly-specific configuration.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"cache_mode": schema.BoolAttribute{
 						MarkdownDescription: "Enable cache mode for memory management.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"bullmq": schema.BoolAttribute{
 						MarkdownDescription: "Enable BullMQ compatibility.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"tls": schema.BoolAttribute{
 						MarkdownDescription: "Enable TLS.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"sidekiq": schema.BoolAttribute{
 						MarkdownDescription: "Enable Sidekiq compatibility.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"memcached": schema.BoolAttribute{
 						MarkdownDescription: "Enable Memcached protocol.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"acl_rules": schema.ListAttribute{
 						MarkdownDescription: "List of ACL rules.",
@@ -166,6 +199,9 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 						Computed:            true,
 						Sensitive:           true,
+						PlanModifiers: []planmodifier.List{
+							listplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},

@@ -94,6 +94,7 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	}
 
 	aclRules, _ := types.ListValueFrom(ctx, types.StringType, in.Config.Dragonfly.AclRules)
+
 	d.Dragonfly = types.ObjectValueMust(map[string]attr.Type{
 		"cache_mode": types.BoolType,
 		"tls":        types.BoolType,
@@ -144,7 +145,7 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 		datastore.Config.NetworkID = in.NetworkId.ValueString()
 	}
 
-	if in.DisablePassKey.ValueBool() {
+	if in.DisablePassKey.ValueBool() && in.Password.IsUnknown() {
 		datastore.Config.DisablePasskey = in.DisablePassKey.ValueBool()
 	}
 
@@ -177,9 +178,7 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 	if in.Dragonfly.Attributes()["acl_rules"] != nil {
 		var rules dfcloud.AclRuleArray
-		for _, rule := range in.Dragonfly.Attributes()["acl_rules"].(types.List).Elements() {
-			rules = append(rules, rule.String())
-		}
+		in.Dragonfly.Attributes()["acl_rules"].(types.List).ElementsAs(context.Background(), &rules, false)
 		datastore.Config.Dragonfly.AclRules = &rules
 	}
 

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
@@ -75,6 +76,8 @@ func TestAcc_DatastoreResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.tls", "false"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.#", "1"),
+					resource.TestMatchResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.0", regexp.MustCompile(`USER default ON \>([a-zA-Z0-9]+) ~\* &\* \+@ALL`)),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "id"),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "addr"),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "created_at"),
@@ -86,6 +89,28 @@ func TestAcc_DatastoreResource(t *testing.T) {
 				ResourceName:      "dfcloud_datastore.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccDatastoreResourceConfigUpdated(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckDatastoreExists("dfcloud_datastore.test"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "name", name),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.provider", "aws"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "eu-west-1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "3000000000"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "0"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.tls", "false"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.#", "1"),
+					resource.TestMatchResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.0", regexp.MustCompile(`USER default ON \>([a-zA-Z0-9]+) ~\* &\* \+@ALL`)),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "id"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "addr"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "created_at"),
+					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "password"),
+				),
 			},
 		},
 	})
@@ -115,6 +140,9 @@ func TestAcc_DatastoreResource_withCluster(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.tls", "false"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.#", "1"),
+					resource.TestMatchResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.0", regexp.MustCompile(`USER default ON \>([a-zA-Z0-9]+) ~\* &\* \+@ALL`)),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "id"),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "addr"),
 					resource.TestCheckResourceAttrSet("dfcloud_datastore.test", "created_at"),
@@ -170,6 +198,26 @@ resource "dfcloud_datastore" "test" {
     max_memory_bytes  = 3000000000  # 3GB
     performance_tier = "dev"
     replicas        = 1
+  }
+}
+`, name)
+}
+
+func testAccDatastoreResourceConfigUpdated(name string) string {
+	return fmt.Sprintf(`
+resource "dfcloud_datastore" "test" {
+  name = %[1]q
+  
+  location = {
+    provider = "aws"
+    region   = "eu-west-1"
+    availability_zones = ["euw1-az2"]
+  }
+
+  tier = {
+    max_memory_bytes  = 3000000000  # 3GB
+    performance_tier = "dev"
+    replicas        = 0
   }
 }
 `, name)
