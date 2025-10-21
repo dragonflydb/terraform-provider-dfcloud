@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Enable version updates for Go
+  - package-ecosystem: "gomod"
+    # Look for `go.mod` file in the root directory
+    directory: "/"
+    # Check for updates every day (weekly is the default)
+    schedule:
+      interval: "weekly"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    # Look for `.github/workflows` directory
+    directory: "/"
+    # Check for updates every day (weekly is the default)
+    schedule:
+      interval: "weekly"
