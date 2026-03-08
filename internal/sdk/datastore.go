@@ -31,12 +31,16 @@ const (
 	PerformanceTierDev      PerformanceTier = "dev"
 	PerformanceTierStandard PerformanceTier = "standard"
 	PerformanceTierEnhanced PerformanceTier = "enhanced"
+	PerformanceTierExtreme  PerformanceTier = "extreme"
+	PerformanceTierBYOC     PerformanceTier = "byoc"
 )
 
 var PerformanceTiers = []PerformanceTier{
 	PerformanceTierDev,
 	PerformanceTierStandard,
 	PerformanceTierEnhanced,
+	PerformanceTierExtreme,
+	PerformanceTierBYOC,
 }
 
 func PerformanceTiersString() []string {
