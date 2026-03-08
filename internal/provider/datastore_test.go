@@ -159,6 +159,164 @@ func TestAcc_DatastoreResource_withCluster(t *testing.T) {
 	})
 }
 
+// These tests verify plan-time validation errors. They don't call the API,
+// so they don't require DFCLOUD_API_KEY.
+
+func TestAcc_DatastoreResource_invalidPerformanceTier(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-tier"
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 3000000000
+    performance_tier = "mega"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Invalid Performance Tier`),
+			},
+		},
+	})
+}
+
+func TestAcc_DatastoreResource_devTierUnsupportedSize(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-dev-size"
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 30000000000
+    performance_tier = "dev"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Unsupported Memory Size`),
+			},
+		},
+	})
+}
+
+func TestAcc_DatastoreResource_unsupportedSizeForProvider(t *testing.T) {
+	// 300 GB is not supported for standard tier on AWS
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-size-provider"
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 300000000000
+    performance_tier = "standard"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Unsupported Memory Size`),
+			},
+		},
+	})
+}
+
+func TestAcc_DatastoreResource_clusterInvalidShardSize(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-cluster-shard"
+  cluster = {
+    shard_memory = 30000000000
+  }
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 60000000000
+    performance_tier = "dev"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Unsupported Shard Memory Size`),
+			},
+		},
+	})
+}
+
+func TestAcc_DatastoreResource_clusterMemoryNotDivisible(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-cluster-divisible"
+  cluster = {
+    shard_memory = 3000000000
+  }
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 10000000000
+    performance_tier = "dev"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Invalid Cluster Memory Configuration`),
+			},
+		},
+	})
+}
+
+func TestAcc_DatastoreResource_devClusterTooManyShards(t *testing.T) {
+	// 11 shards would exceed the dev max of 10
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "dfcloud_datastore" "test" {
+  name = "validate-cluster-shards"
+  cluster = {
+    shard_memory = 3000000000
+  }
+  location = {
+    provider = "aws"
+    region   = "us-east-1"
+  }
+  tier = {
+    max_memory_bytes  = 33000000000
+    performance_tier = "dev"
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Too Many Shards for Dev Tier`),
+			},
+		},
+	})
+}
+
 func testAccDatastoreClusterResourceConfig(name string) string {
 	return fmt.Sprintf(`
 resource "dfcloud_datastore" "test" {

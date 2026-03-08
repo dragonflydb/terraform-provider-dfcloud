@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -127,12 +130,17 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"max_memory_bytes": schema.Int64Attribute{
-						MarkdownDescription: "The maximum memory (in bytes) for the datastore.",
-						Required:            true,
+						MarkdownDescription: "The maximum memory (in bytes) for the datastore. " +
+							"Must be one of the supported sizes for the chosen performance tier and cloud provider. " +
+							"For example, the `dev` tier only supports 3 GB (3000000000 bytes). " +
+							"In cluster mode this is the total memory across all shards and must be evenly divisible by `shard_memory`.",
+						Required: true,
 					},
 					"performance_tier": schema.StringAttribute{
-						MarkdownDescription: "The performance tier for the datastore.",
-						Required:            true,
+						MarkdownDescription: "The performance tier for the datastore. " +
+							"Valid values are: `dev`, `standard`, `enhanced`, `extreme`, `byoc`. " +
+							"Each tier supports a specific set of memory sizes that also varies by cloud provider.",
+						Required: true,
 					},
 					"replicas": schema.Int64Attribute{
 						MarkdownDescription: "The number of replicas for the datastore. Default is 0.",
@@ -415,6 +423,143 @@ func (r *datastoreResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(diags...)
 }
 
+// ValidateConfig performs cross-attribute validation at plan time so that
+// users receive clear, actionable error messages instead of opaque 403 errors
+// from the API.
+func (r *datastoreResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config resource_model.Datastore
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Validate performance_tier enum
+	tierStr := config.Tier.PerformanceTier.ValueString()
+	if !config.Tier.PerformanceTier.IsNull() && !config.Tier.PerformanceTier.IsUnknown() {
+		if !dfcloud.IsValidPerformanceTier(tierStr) {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("tier").AtName("performance_tier"),
+				"Invalid Performance Tier",
+				fmt.Sprintf(
+					"%q is not a supported performance tier. Valid values are: %s.",
+					tierStr,
+					strings.Join(dfcloud.PerformanceTiersString(), ", "),
+				),
+			)
+			return
+		}
+	}
+
+	// Validate cloud provider enum
+	providerStr := config.Location.Provider.ValueString()
+	if !config.Location.Provider.IsNull() && !config.Location.Provider.IsUnknown() {
+		if !dfcloud.IsValidCloudProvider(providerStr) {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("location").AtName("provider"),
+				"Invalid Cloud Provider",
+				fmt.Sprintf(
+					"%q is not a supported cloud provider. Valid values are: %s.",
+					providerStr,
+					strings.Join(dfcloud.ValidCloudProviders(), ", "),
+				),
+			)
+			return
+		}
+	}
+
+	// If tier or provider is unknown (e.g. from a variable), skip size checks.
+	if config.Tier.PerformanceTier.IsUnknown() || config.Location.Provider.IsUnknown() || config.Tier.Memory.IsUnknown() {
+		return
+	}
+
+	tier := dfcloud.PerformanceTier(tierStr)
+	provider := dfcloud.CloudProvider(providerStr)
+	memoryBytes := uint64(config.Tier.Memory.ValueInt64())
+
+	// Cluster mode validation
+	if !config.Cluster.IsNull() && !config.Cluster.IsUnknown() {
+		// Extract shard_memory from the cluster object.
+		var cluster resource_model.DatastoreClusterConfig
+		clusterDiags := config.Cluster.As(ctx, &cluster, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(clusterDiags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if !cluster.ShardMemory.IsNull() && !cluster.ShardMemory.IsUnknown() {
+			shardMemory := uint64(cluster.ShardMemory.ValueInt64())
+
+			// Validate shard_memory is a supported shard size for the tier+provider.
+			if !dfcloud.IsSupportedShardSize(tier, shardMemory, provider) {
+				supportedSizes := dfcloud.SupportedSizesForTier(tier, provider)
+				resp.Diagnostics.AddAttributeError(
+					path.Root("cluster").AtName("shard_memory"),
+					"Unsupported Shard Memory Size",
+					fmt.Sprintf(
+						"%s is not a supported shard size for the %q tier on %q. Supported shard sizes are: %s.",
+						dfcloud.FormatBytes(shardMemory),
+						tierStr,
+						providerStr,
+						dfcloud.FormatMemorySizeList(supportedSizes),
+					),
+				)
+			}
+
+			// Validate max_memory_bytes is evenly divisible by shard_memory.
+			if shardMemory > 0 && memoryBytes%shardMemory != 0 {
+				resp.Diagnostics.AddAttributeError(
+					path.Root("tier").AtName("max_memory_bytes"),
+					"Invalid Cluster Memory Configuration",
+					fmt.Sprintf(
+						"max_memory_bytes (%s) must be evenly divisible by shard_memory (%s). "+
+							"Current configuration would require a non-integer number of shards.",
+						dfcloud.FormatBytes(memoryBytes),
+						dfcloud.FormatBytes(shardMemory),
+					),
+				)
+			}
+
+			// For dev tier, check the max cluster shards limit.
+			if tier == dfcloud.PerformanceTierDev && shardMemory > 0 {
+				shardCount := memoryBytes / shardMemory
+				if shardCount > dfcloud.DevMaxClusterShards {
+					resp.Diagnostics.AddAttributeError(
+						path.Root("tier").AtName("max_memory_bytes"),
+						"Too Many Shards for Dev Tier",
+						fmt.Sprintf(
+							"The dev tier supports a maximum of %d cluster shards, but the current "+
+								"configuration (max_memory_bytes=%s / shard_memory=%s) would require %d shards.",
+							dfcloud.DevMaxClusterShards,
+							dfcloud.FormatBytes(memoryBytes),
+							dfcloud.FormatBytes(shardMemory),
+							shardCount,
+						),
+					)
+				}
+			}
+		}
+
+		return
+	}
+
+	// Single-shard memory validation
+	if !dfcloud.IsSupportedShardSize(tier, memoryBytes, provider) {
+		supportedSizes := dfcloud.SupportedSizesForTier(tier, provider)
+		resp.Diagnostics.AddAttributeError(
+			path.Root("tier").AtName("max_memory_bytes"),
+			"Unsupported Memory Size",
+			fmt.Sprintf(
+				"%s is not a supported memory size for the %q tier on %q. Supported sizes are: %s.",
+				dfcloud.FormatBytes(memoryBytes),
+				tierStr,
+				providerStr,
+				dfcloud.FormatMemorySizeList(supportedSizes),
+			),
+		)
+	}
+}
+
 // clusterPlanModifier is a custom plan modifier for the 'cluster' attribute.
 type clusterPlanModifier struct{}
 
@@ -442,7 +587,8 @@ func (m clusterPlanModifier) PlanModifyObject(ctx context.Context, req planmodif
 }
 
 var (
-	_ resource.Resource                = &datastoreResource{}
-	_ resource.ResourceWithConfigure   = &datastoreResource{}
-	_ resource.ResourceWithImportState = &datastoreResource{}
+	_ resource.Resource                   = &datastoreResource{}
+	_ resource.ResourceWithConfigure      = &datastoreResource{}
+	_ resource.ResourceWithImportState    = &datastoreResource{}
+	_ resource.ResourceWithValidateConfig = &datastoreResource{}
 )
