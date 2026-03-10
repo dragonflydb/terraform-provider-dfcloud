@@ -54,7 +54,29 @@ Optional:
 
 Required:
 
-- `max_memory_bytes` (Number) The maximum memory (in bytes) for the datastore.
+- `max_memory_bytes` (Number) The maximum memory (in bytes) for the datastore. For example, `12500000000` represents 12.5 GB.
+
+The permitted values listed below apply to non-swarm datastores. For swarm datastores, the value must be a multiple of `shard_memory` (e.g. `shard_memory` × number of shards).
+
+Permitted values by cloud provider and performance tier (non-swarm):
+
+| Provider | Tier     | Permitted values (bytes)                                                                                       |
+|----------|----------|----------------------------------------------------------------------------------------------------------------|
+| AWS      | dev      | `3e9`                                                                                                          |
+| AWS      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                 |
+| AWS      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                           |
+| AWS      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |
+| AWS      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`                                                          |
+| GCP      | dev      | `3e9`                                                                                                          |
+| GCP      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |
+| GCP      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                                  |
+| GCP      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`, `250e9`, `300e9`, `400e9`                      |
+| GCP      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`                                                 |
+| Azure    | dev      | `3e9`                                                                                                          |
+| Azure    | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                                  |
+| Azure    | enhanced | `6.5e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`, `300e9`                                         |
+| Azure    | extreme  | `6.5e9`, `12.5e9`, `25e9`, `50e9`, `100e9`                                                                    |
+
 - `performance_tier` (String) The performance tier for the datastore.
 
 Optional:
@@ -67,7 +89,9 @@ Optional:
 
 Optional:
 
-- `shard_memory` (Number) The cluster shard memory.
+- `shard_memory` (Number) The cluster shard memory in bytes. For example, `6250000000` represents 6.25 GB. If not set, the shard memory is managed automatically.
+
+  Permitted values: `6250000000` (6.25 GB), `12500000000` (12.5 GB), `25000000000` (25 GB), `50000000000` (50 GB), `100000000000` (100 GB).
 
 
 <a id="nestedatt--dragonfly"></a>

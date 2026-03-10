@@ -91,7 +91,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				},
 				Attributes: map[string]schema.Attribute{
 					"shard_memory": schema.Int64Attribute{
-						MarkdownDescription: "The cluster shard memory.",
+						MarkdownDescription: "The cluster shard memory in bytes. For example, `6250000000` represents 6.25 GB. If not set, the shard memory is managed automatically.\n\nPermitted values: `6250000000` (6.25 GB), `12500000000` (12.5 GB), `25000000000` (25 GB), `50000000000` (50 GB), `100000000000` (100 GB).",
 						Optional:            true,
 					},
 				},
@@ -127,7 +127,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"max_memory_bytes": schema.Int64Attribute{
-						MarkdownDescription: "The maximum memory (in bytes) for the datastore.",
+						MarkdownDescription: "The maximum memory (in bytes) for the datastore. For example, `12500000000` represents 12.5 GB.\n\nThe permitted values listed below apply to non-swarm datastores. For swarm datastores, the value must be a multiple of `shard_memory` (e.g. `shard_memory` × number of shards).\n\nPermitted values by cloud provider and performance tier (non-swarm):\n\n| Provider | Tier     | Permitted values (bytes)                                                                                       |\n|----------|----------|----------------------------------------------------------------------------------------------------------------|\n| AWS      | dev      | `3e9`                                                                                                          |\n| AWS      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                 |\n| AWS      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                           |\n| AWS      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |\n| AWS      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`                                                          |\n| GCP      | dev      | `3e9`                                                                                                          |\n| GCP      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |\n| GCP      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                                  |\n| GCP      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`, `250e9`, `300e9`, `400e9`                      |\n| GCP      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`                                                 |\n| Azure    | dev      | `3e9`                                                                                                          |\n| Azure    | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                                  |\n| Azure    | enhanced | `6.5e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`, `300e9`                                         |\n| Azure    | extreme  | `6.5e9`, `12.5e9`, `25e9`, `50e9`, `100e9`                                                                    |",
 						Required:            true,
 					},
 					"performance_tier": schema.StringAttribute{
