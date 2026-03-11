@@ -195,7 +195,7 @@ resource "dfcloud_datastore" "test" {
   }
 
   tier = {
-    max_memory_bytes  = 3000000000  # 3GB
+    max_memory_bytes  = 3e9  # 3GB
     performance_tier = "dev"
     replicas        = 1
   }
