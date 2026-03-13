@@ -292,8 +292,16 @@ func (r *datastoreResource) Read(ctx context.Context, req resource.ReadRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if state.ID.IsNull() || state.ID.ValueString() == "" {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 
 	respDatastore, err := r.client.GetDatastore(ctx, state.ID.ValueString())
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("Error Reading Datastore", err.Error())
 		return
@@ -373,6 +381,9 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if state.ID.IsNull() || state.ID.ValueString() == "" {
 		return
 	}
 

@@ -140,18 +140,35 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	waitForNetworkStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-	respNetwork, err := resource_model.WaitUntilNetworkStatus(waitForNetworkStatusCtx, r.client, state.Id.ValueString(), dfcloud.NetworkStatusActive)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to wait for network", err.Error())
+	if state.Id.IsNull() || state.Id.ValueString() == "" {
+		resp.State.RemoveResource(ctx)
 		return
 	}
-
+	respNetwork, err := r.client.GetNetwork(ctx, state.Id.ValueString())
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("failed to read network", err.Error())
+		return
+	}
 	if respNetwork.Status == dfcloud.NetworkStatusDeleted {
 		resp.State.RemoveResource(ctx)
 		return
+	}
+	if respNetwork.Status != dfcloud.NetworkStatusActive {
+		waitForNetworkStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		respNetwork, err = resource_model.WaitUntilNetworkStatus(waitForNetworkStatusCtx, r.client, state.Id.ValueString(), dfcloud.NetworkStatusActive)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		if err != nil {
+			resp.Diagnostics.AddError("failed to wait for network", err.Error())
+			return
+		}
 	}
 
 	state = *resource_model.FromNetworkConfig(respNetwork)
@@ -170,6 +187,9 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	var state *resource_model.Network
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if state == nil || state.Id.IsNull() || state.Id.ValueString() == "" {
 		return
 	}
 

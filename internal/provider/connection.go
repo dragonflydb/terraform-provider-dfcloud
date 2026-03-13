@@ -138,8 +138,16 @@ func (r *ConnectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	if state.ConnectionID.IsNull() || state.ConnectionID.ValueString() == "" {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 
 	respConn, err := r.client.GetConnection(ctx, state.ConnectionID.ValueString())
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read connection", err.Error())
 		return
@@ -171,6 +179,9 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if state == nil || state.ConnectionID.IsNull() || state.ConnectionID.ValueString() == "" {
 		return
 	}
 

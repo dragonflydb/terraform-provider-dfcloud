@@ -2,6 +2,8 @@ package resource_model
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
@@ -60,8 +62,25 @@ func FromNetworkConfig(in *dfcloud.Network) *Network {
 }
 
 func WaitUntilNetworkStatus(ctx context.Context, client *dfcloud.Client, id string, status dfcloud.NetworkStatus) (*dfcloud.Network, error) {
+	if id == "" {
+		return nil, fmt.Errorf("missing network id")
+	}
 	for {
 		network, err := client.GetNetwork(ctx, id)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			if status == dfcloud.NetworkStatusDeleted {
+				return &dfcloud.Network{
+					ID:     id,
+					Status: dfcloud.NetworkStatusDeleted,
+				}, nil
+			}
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
+		}
 		if err != nil {
 			return nil, err
 		}

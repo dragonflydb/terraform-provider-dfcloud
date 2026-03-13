@@ -2,6 +2,8 @@ package resource_model
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
@@ -57,8 +59,25 @@ func FromConnectionConfig(in *dfcloud.Connection) *Connection {
 }
 
 func WaitUntilConnectionStatus(ctx context.Context, client *dfcloud.Client, id string, status dfcloud.ConnectionStatus) (*dfcloud.Connection, error) {
+	if id == "" {
+		return nil, fmt.Errorf("missing connection id")
+	}
 	for {
 		conn, err := client.GetConnection(ctx, id)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			if status == dfcloud.ConnectionStatusDeleted {
+				return &dfcloud.Connection{
+					ID:     id,
+					Status: dfcloud.ConnectionStatusDeleted,
+				}, nil
+			}
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
+		}
 		if err != nil {
 			return nil, err
 		}

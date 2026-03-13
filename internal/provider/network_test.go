@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -40,6 +41,9 @@ func testCheckNetworkDestroy(s *terraform.State) error {
 		}
 
 		network, err := client.GetNetwork(context.Background(), rs.Primary.ID)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			continue
+		}
 		if err != nil {
 			return fmt.Errorf("error fetching network with ID %s: %s", rs.Primary.ID, err)
 		}
