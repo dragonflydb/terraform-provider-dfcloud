@@ -2,6 +2,7 @@ name: Go Lint and Format
 
 on:
   pull_request:
+  pull_request_target:
   push:
     branches:
       - "main"
