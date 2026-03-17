@@ -185,18 +185,18 @@ func (c *Client) DeleteDatastore(ctx context.Context, id string) error {
 }
 
 func (c *Client) GetNetwork(ctx context.Context, id string) (*Network, error) {
-	networks, err := c.ListNetworks(ctx)
+	r, err := c.request(ctx, http.MethodGet, "/v1/networks/"+id, nil)
 	if err != nil {
 		return nil, err
 	}
+	defer r.Close()
 
-	for _, network := range networks {
-		if network != nil && network.ID == id {
-			return network, nil
-		}
+	var network Network
+	if err := json.NewDecoder(r).Decode(&network); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
 	}
 
-	return nil, ErrNotFound
+	return &network, nil
 }
 
 func (c *Client) CreateNetwork(ctx context.Context, config *NetworkConfig) (*Network, error) {

@@ -27,20 +27,17 @@ func newTestClient(t *testing.T, handler http.Handler) *Client {
 	return client
 }
 
-func TestGetNetworkFromList(t *testing.T) {
+func TestGetNetwork(t *testing.T) {
 	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			t.Fatalf("unexpected method %s", r.Method)
 		}
-		if r.URL.Path != "/v1/networks" {
+		if r.URL.Path != "/v1/networks/network-2" {
 			t.Fatalf("unexpected path %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`[
-			{"network_id":"network-1","name":"one","location":{"provider":"aws","region":"us-east-1"},"cidr_block":"10.0.0.0/16","status":"pending","created_at":1},
-			{"network_id":"network-2","name":"two","location":{"provider":"gcp","region":"us-central1"},"cidr_block":"10.1.0.0/16","status":"active","created_at":2}
-		]`))
+		_, _ = w.Write([]byte(`{"network_id":"network-2","name":"two","location":{"provider":"gcp","region":"us-central1"},"cidr_block":"10.1.0.0/16","status":"active","created_at":2}`))
 	}))
 
 	got, err := client.GetNetwork(context.Background(), "network-2")
@@ -63,12 +60,12 @@ func TestGetNetworkReturnsNotFound(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Fatalf("unexpected method %s", r.Method)
 		}
-		if r.URL.Path != "/v1/networks" {
+		if r.URL.Path != "/v1/networks/missing-network" {
 			t.Fatalf("unexpected path %s", r.URL.Path)
 		}
 
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`[]`))
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":"not found"}`))
 	}))
 
 	_, err := client.GetNetwork(context.Background(), "missing-network")
