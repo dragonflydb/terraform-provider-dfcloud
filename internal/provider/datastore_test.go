@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -41,6 +42,9 @@ func testCheckDatastoreDestroy(s *terraform.State) error {
 		}
 
 		ds, err := client.GetDatastore(context.Background(), rs.Primary.ID)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			continue
+		}
 		if err != nil {
 			return fmt.Errorf("error fetching datastore with ID %s: %s", rs.Primary.ID, err)
 		}

@@ -2,6 +2,8 @@ package resource_model
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
@@ -199,8 +201,25 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 // Helper function to wait for datastore to become active.
 func WaitForDatastoreStatus(ctx context.Context, client *dfcloud.Client, id string, status dfcloud.DatastoreStatus) (*dfcloud.Datastore, error) {
+	if id == "" {
+		return nil, fmt.Errorf("missing datastore id")
+	}
 	for {
 		datastore, err := client.GetDatastore(ctx, id)
+		if errors.Is(err, dfcloud.ErrNotFound) {
+			if status == dfcloud.DatastoreStatusDeleted {
+				return &dfcloud.Datastore{
+					ID:     id,
+					Status: dfcloud.DatastoreStatusDeleted,
+				}, nil
+			}
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
+		}
 		if err != nil {
 			return nil, err
 		}

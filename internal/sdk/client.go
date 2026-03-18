@@ -191,11 +191,12 @@ func (c *Client) GetNetwork(ctx context.Context, id string) (*Network, error) {
 	}
 	defer r.Close()
 
-	var network *Network
+	var network Network
 	if err := json.NewDecoder(r).Decode(&network); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
-	return network, nil
+
+	return &network, nil
 }
 
 func (c *Client) CreateNetwork(ctx context.Context, config *NetworkConfig) (*Network, error) {
