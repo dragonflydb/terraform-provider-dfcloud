@@ -11,7 +11,7 @@ install-tfplugindocs:
 
 docs: install-tfplugindocs
 	@echo "Updating documentation..."
-	@tfplugindocs generate --provider-name dfcloud
+	@tfplugindocs generate --provider-name terraform-provider-dfcloud
 
 .PHONY: install-tfplugindocs install-goreleaser docs
 

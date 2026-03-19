@@ -274,7 +274,7 @@ func (r *datastoreResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	tflog.Info(ctx, "created datastore", map[string]interface{}{
+	tflog.Info(ctx, "created datastore", map[string]any{
 		"datastore_id": respDatastore.ID,
 		"status":       respDatastore.Status,
 	})
@@ -312,7 +312,7 @@ func (r *datastoreResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	tflog.Info(ctx, "read datastore", map[string]interface{}{
+	tflog.Info(ctx, "read datastore", map[string]any{
 		"datastore_id": respDatastore.ID,
 		"status":       respDatastore.Status,
 	})
@@ -365,7 +365,7 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Info(ctx, "updated datastore", map[string]interface{}{
+	tflog.Info(ctx, "updated datastore", map[string]any{
 		"datastore_id": respDatastore.ID,
 		"status":       respDatastore.Status,
 	})
@@ -389,7 +389,7 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	err := r.client.DeleteDatastore(ctx, state.ID.ValueString())
 	if errors.Is(err, dfcloud.ErrNotFound) {
-		tflog.Warn(ctx, "datastore is already deleted", map[string]interface{}{
+		tflog.Warn(ctx, "datastore is already deleted", map[string]any{
 			"datastore_id": state.ID.ValueString(),
 		})
 		return
@@ -407,7 +407,7 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 
-	tflog.Info(ctx, "deleted datastore", map[string]interface{}{
+	tflog.Info(ctx, "deleted datastore", map[string]any{
 		"datastore_id": state.ID.ValueString(),
 	})
 }

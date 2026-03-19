@@ -62,7 +62,6 @@ func (p DragonflyDBCloudProvider) Configure(ctx context.Context, req provider.Co
 	var options []dfcloud.ClientOption
 	if config.ApiKey.ValueString() != "" {
 		options = append(options, dfcloud.WithAPIKey(config.ApiKey.ValueString()))
-
 	} else {
 		options = append(options, dfcloud.WithAPIKeyFromEnv())
 	}

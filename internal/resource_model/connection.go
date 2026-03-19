@@ -21,16 +21,24 @@ type Connection struct {
 }
 
 type PeerConfigModel struct {
-	AccountID types.String `tfsdk:"account_id"`
-	VPCID     types.String `tfsdk:"vpc_id"`
-	Region    types.String `tfsdk:"region"`
+	AccountID          types.String `tfsdk:"account_id"`
+	VPCID              types.String `tfsdk:"vpc_id"`
+	Region             types.String `tfsdk:"region"`
+	AzureResourceGroup types.String `tfsdk:"azure_resource_group"`
+	AzureTenantID      types.String `tfsdk:"azure_tenant_id"`
+	AzureAppObjectID   types.String `tfsdk:"azure_app_object_id"`
 }
 
-func IntoPeerConfig(in PeerConfigModel) dfcloud.PeerConfig {
+func IntoPeerConfig(in *PeerConfigModel) dfcloud.PeerConfig {
 	return dfcloud.PeerConfig{
 		AccountID: in.AccountID.ValueString(),
 		VPCID:     in.VPCID.ValueString(),
 		Region:    in.Region.ValueString(),
+		AzureConfig: dfcloud.AzureConfig{
+			ResourceGroup: in.AzureResourceGroup.ValueString(),
+			TenantID:      in.AzureTenantID.ValueString(),
+			AppObjectID:   in.AzureAppObjectID.ValueString(),
+		},
 	}
 }
 
@@ -38,20 +46,32 @@ func IntoConnectionConfig(in Connection) *dfcloud.ConnectionConfig {
 	return &dfcloud.ConnectionConfig{
 		Name:      in.Name.ValueString(),
 		NetworkID: in.NetworkID.ValueString(),
-		Peer:      IntoPeerConfig(*in.Peer),
+		Peer:      IntoPeerConfig(in.Peer),
 	}
 }
 
+func optionalString(s string) types.String {
+	if s == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
+}
+
 func FromConnectionConfig(in *dfcloud.Connection) *Connection {
+	az := in.Config.Peer.AzureConfig
+	peer := &PeerConfigModel{
+		AccountID:          types.StringValue(in.Config.Peer.AccountID),
+		VPCID:              types.StringValue(in.Config.Peer.VPCID),
+		Region:             types.StringValue(in.Config.Peer.Region),
+		AzureResourceGroup: optionalString(az.ResourceGroup),
+		AzureTenantID:      optionalString(az.TenantID),
+		AzureAppObjectID:   optionalString(az.AppObjectID),
+	}
 	return &Connection{
 		ConnectionID: types.StringValue(in.ID),
 		Name:         types.StringValue(in.Config.Name),
 		NetworkID:    types.StringValue(in.Config.NetworkID),
-		Peer: &PeerConfigModel{
-			AccountID: types.StringValue(in.Config.Peer.AccountID),
-			VPCID:     types.StringValue(in.Config.Peer.VPCID),
-			Region:    types.StringValue(in.Config.Peer.Region),
-		},
+		Peer:         peer,
 		Status:       types.StringValue(string(in.Status)),
 		StatusDetail: types.StringValue(in.StatusDetail),
 		PeerConnID:   types.StringValue(in.PeerConnectionID),

@@ -76,7 +76,19 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						Required:            true,
 					},
 					"region": schema.StringAttribute{
-						MarkdownDescription: "The region of the target VPC.",
+						MarkdownDescription: "The region of the target VPC. Only required for AWS cross-region connections.",
+						Optional:            true,
+					},
+					"azure_resource_group": schema.StringAttribute{
+						MarkdownDescription: "The Azure resource group of the peer VNet. Required for Azure network connections.",
+						Optional:            true,
+					},
+					"azure_tenant_id": schema.StringAttribute{
+						MarkdownDescription: "The Azure tenant ID. Required for Azure network connections.",
+						Optional:            true,
+					},
+					"azure_app_object_id": schema.StringAttribute{
+						MarkdownDescription: "The object ID of the Azure AD application used for peering. Required for Azure network connections.",
 						Optional:            true,
 					},
 				},
@@ -187,7 +199,7 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 
 	err := r.client.DeleteConnection(ctx, state.ConnectionID.ValueString())
 	if errors.Is(err, dfcloud.ErrNotFound) {
-		tflog.Warn(ctx, "connection is already deleted", map[string]interface{}{
+		tflog.Warn(ctx, "connection is already deleted", map[string]any{
 			"connection_id": state.ConnectionID.ValueString(),
 		})
 		return
