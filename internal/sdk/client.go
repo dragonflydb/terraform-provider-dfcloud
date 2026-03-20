@@ -231,6 +231,23 @@ func (c *Client) ListNetworks(ctx context.Context) ([]*Network, error) {
 	return networks, nil
 }
 
+func (c *Client) UpdateNetwork(ctx context.Context, id string, config *NetworkConfig) (*Network, error) {
+	b, _ := json.Marshal(&config)
+
+	r, err := c.request(ctx, http.MethodPut, "/v1/networks/"+id, b)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var network Network
+	if err := json.NewDecoder(r).Decode(&network); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	return &network, nil
+}
+
 func (c *Client) DeleteNetwork(ctx context.Context, id string) error {
 	r, err := c.request(ctx, http.MethodDelete, "/v1/networks/"+id, nil)
 	if err != nil {
