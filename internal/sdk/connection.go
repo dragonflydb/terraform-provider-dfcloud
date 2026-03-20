@@ -26,6 +26,13 @@ const (
 	ConnectionStatusFailed ConnectionStatus = "failed"
 )
 
+// AzureConfig holds Azure-specific peering options.
+type AzureConfig struct {
+	ResourceGroup string `json:"resource_group"`
+	TenantID      string `json:"tenant_id"`
+	AppObjectID   string `json:"app_object_id"`
+}
+
 // PeerConfig describes the VPC to connect to.
 type PeerConfig struct {
 	// AccountID is the account ID of the target VPC.
@@ -37,6 +44,8 @@ type PeerConfig struct {
 	// Region is the region of the target VPC. Only specify if the target VPC
 	// is in a different region to the network your connecting to.
 	Region string `json:"region,omitempty"`
+	// AzureConfig holds Azure-specific peering options.
+	AzureConfig AzureConfig `json:"azure"` //nolint:tagliatelle
 }
 
 type ConnectionConfig struct {

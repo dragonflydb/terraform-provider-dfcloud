@@ -38,4 +38,7 @@ Required:
 
 Optional:
 
-- `region` (String) The region of the target VPC.
+- `azure_app_object_id` (String) The object ID of the Azure AD application used for peering. Required for Azure network connections.
+- `azure_resource_group` (String) The Azure resource group of the peer VNet. Required for Azure network connections.
+- `azure_tenant_id` (String) The Azure tenant ID. Required for Azure network connections.
+- `region` (String) The region of the target VPC. Only required for AWS cross-region connections.

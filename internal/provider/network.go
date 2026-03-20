@@ -218,7 +218,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	err := r.client.DeleteNetwork(ctx, state.Id.ValueString())
 	if errors.Is(err, dfcloud.ErrNotFound) {
-		tflog.Warn(ctx, "network is already deleted", map[string]interface{}{
+		tflog.Warn(ctx, "network is already deleted", map[string]any{
 			"network_id": state.Id.ValueString(),
 		})
 		return
