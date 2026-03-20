@@ -58,6 +58,7 @@ func testCheckNetworkDestroy(s *terraform.State) error {
 
 func TestAcc_NetworkResource(t *testing.T) {
 	name := "tf-test-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	updatedName := name + "-updated"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -70,6 +71,21 @@ func TestAcc_NetworkResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckNetworkExists("dfcloud_network.test"),
 					resource.TestCheckResourceAttr("dfcloud_network.test", "name", name),
+					resource.TestCheckResourceAttr("dfcloud_network.test", "location.provider", "aws"),
+					resource.TestCheckResourceAttr("dfcloud_network.test", "location.region", "us-east-1"),
+					resource.TestCheckResourceAttr("dfcloud_network.test", "cidr_block", "10.0.0.0/16"),
+					resource.TestCheckResourceAttrSet("dfcloud_network.test", "id"),
+					resource.TestCheckResourceAttrSet("dfcloud_network.test", "created_at"),
+					resource.TestCheckResourceAttrSet("dfcloud_network.test", "status"),
+					resource.TestCheckResourceAttrSet("dfcloud_network.test", "vpc.resource_id"),
+					resource.TestCheckResourceAttrSet("dfcloud_network.test", "vpc.account_id"),
+				),
+			},
+			{
+				Config: testAccNetworkResourceConfig(updatedName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckNetworkExists("dfcloud_network.test"),
+					resource.TestCheckResourceAttr("dfcloud_network.test", "name", updatedName),
 					resource.TestCheckResourceAttr("dfcloud_network.test", "location.provider", "aws"),
 					resource.TestCheckResourceAttr("dfcloud_network.test", "location.region", "us-east-1"),
 					resource.TestCheckResourceAttr("dfcloud_network.test", "cidr_block", "10.0.0.0/16"),

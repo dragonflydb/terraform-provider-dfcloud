@@ -46,9 +46,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the network.",
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"location": schema.SingleNestedAttribute{
 				MarkdownDescription: "The location configuration for the network.",
@@ -176,11 +173,37 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// no updates allowed for networks
-	resp.Diagnostics.AddError(
-		"Updating a Network is not supported",
-		"Updating a Network is not supported",
-	)
+	var state resource_model.Network
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var plan resource_model.Network
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	networkConfig := &dfcloud.NetworkConfig{
+		Name: plan.Name.ValueString(),
+	}
+	respNetwork, err := r.client.UpdateNetwork(ctx, state.Id.ValueString(), networkConfig)
+	if errors.Is(err, dfcloud.ErrNotFound) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("failed to update network", err.Error())
+		return
+	}
+
+	tflog.Info(ctx, "updated network", map[string]any{
+		"network_id": respNetwork.ID,
+	})
+
+	plan = *resource_model.FromNetworkConfig(respNetwork)
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
 func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
