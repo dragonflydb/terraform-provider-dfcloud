@@ -1,4 +1,15 @@
-# Authentication Guide
+---
+page_title: "{{.ProviderShortName}} Provider"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.ProviderShortName}} Provider
+
+{{ .Description | trimspace }}
+
+## Authentication
 
 Visit [dragonflydb.cloud](https://dragonflydb.cloud) and generate an API key with the required permissions. Then set the following environment variable before using the Terraform provider:
 
@@ -13,3 +24,9 @@ provider "dfcloud" {
   api_key = "<YOUR_API_KEY>"
 }
 ```
+
+## Example Usage
+
+{{ tffile "examples/provider/provider.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
