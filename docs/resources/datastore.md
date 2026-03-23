@@ -12,49 +12,83 @@ Manages a Dragonfly datastore resource.
 
 ## Example Usage
 
-### Standalone datastore
-
 ```terraform
-resource "dfcloud_datastore" "example" {
-  name = "my-datastore"
+# Simple datastore on GCP
+resource "dfcloud_datastore" "cache" {
+  name = "frontend-cache"
 
-  location {
+  location = {
+    region   = "us-central1"
     provider = "gcp"
-    region   = "europe-west1"
   }
 
-  tier {
-    max_memory_bytes = 12500000000
-    performance_tier = "standard"
+  tier = {
+    max_memory_bytes = 3000000000
+    performance_tier = "dev"
+    replicas         = 1
   }
-}
-```
 
-### Datastore in a network
-
-```terraform
-resource "dfcloud_network" "example" {
-  name       = "my-network"
-  cidr_block = "10.0.0.0/16"
-
-  location {
-    provider = "gcp"
-    region   = "europe-west1"
+  dragonfly = {
+    cache_mode = true
   }
 }
 
-resource "dfcloud_datastore" "example_in_network" {
-  name       = "my-datastore"
-  network_id = dfcloud_network.example.id
+# Clustered datastore on GCP
+resource "dfcloud_datastore" "cache_cluster" {
+  name = "frontend-cache-cluster"
 
-  location {
+  location = {
+    region   = "us-central1"
     provider = "gcp"
-    region   = "europe-west1"
   }
 
-  tier {
-    max_memory_bytes = 12500000000
-    performance_tier = "standard"
+  tier = {
+    max_memory_bytes = 6000000000
+    performance_tier = "dev"
+    replicas         = 1
+  }
+
+  cluster = {
+    shard_memory = 3000000000
+  }
+
+  dragonfly = {
+    cache_mode = true
+  }
+}
+
+# Datastore in a private network on AWS
+resource "dfcloud_network" "network" {
+  name = "my-network"
+
+  location = {
+    region   = "eu-west-1"
+    provider = "aws"
+  }
+
+  cidr_block = "192.168.0.0/16"
+}
+
+resource "dfcloud_datastore" "private" {
+  name       = "my-cache-datastore"
+  network_id = dfcloud_network.network.id
+
+  location = {
+    region             = "eu-west-1"
+    availability_zones = ["euw1-az2"]
+    provider           = "aws"
+  }
+
+  disable_pass_key = true
+
+  tier = {
+    max_memory_bytes = 3000000000
+    performance_tier = "dev"
+    replicas         = 0
+  }
+
+  dragonfly = {
+    cache_mode = false
   }
 }
 ```
@@ -161,3 +195,11 @@ Optional:
 - `duration_hours` (Number) DurationHours is the duration of the maintenance window in hours. 0 means maintenance is always allowed.
 - `hour` (Number) The hour of the day to start the maintenance window. 0-23.
 - `weekday` (Number) The day of the week to start the maintenance window. 0-6, 0 is Sunday.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import dfcloud_datastore.cache datastore-id
+```

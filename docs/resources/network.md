@@ -13,14 +13,15 @@ Manages a Dragonfly network.
 ## Example Usage
 
 ```terraform
-resource "dfcloud_network" "example" {
-  name       = "my-network"
-  cidr_block = "10.0.0.0/16"
+resource "dfcloud_network" "network" {
+  name = "my-network"
 
-  location {
-    provider = "gcp"
-    region   = "europe-west1"
+  location = {
+    region   = "eu-west-1"
+    provider = "aws"
   }
+
+  cidr_block = "192.168.0.0/16"
 }
 ```
 
@@ -56,3 +57,11 @@ Read-Only:
 
 - `account_id` (String) The account ID of the VPC.
 - `resource_id` (String) The resource ID of the VPC.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import dfcloud_network.network network-id
+```

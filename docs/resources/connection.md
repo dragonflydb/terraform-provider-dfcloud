@@ -13,22 +13,26 @@ Manages a Dragonfly network connection.
 ## Example Usage
 
 ```terraform
-resource "dfcloud_network" "example" {
-  name       = "my-network"
-  cidr_block = "10.0.0.0/16"
+# Create a network first
+resource "dfcloud_network" "network" {
+  name = "my-network"
 
-  location {
-    provider = "gcp"
-    region   = "europe-west1"
+  location = {
+    region   = "us-east-1"
+    provider = "aws"
   }
+
+  cidr_block = "192.168.0.0/16"
 }
 
-resource "dfcloud_connection" "example" {
-  name       = "my-connection"
-  network_id = dfcloud_network.example.id
+# AWS VPC peering connection
+resource "dfcloud_connection" "aws_peering" {
+  name       = "my-aws-connection"
+  network_id = dfcloud_network.network.id
 
-  peer {
+  peer = {
     account_id = "123456789012"
+    region     = "us-east-1"
     vpc_id     = "vpc-0123456789abcdef0"
   }
 }
@@ -64,3 +68,11 @@ Optional:
 - `azure_resource_group` (String) The Azure resource group of the peer VNet. Required for Azure network connections.
 - `azure_tenant_id` (String) The Azure tenant ID. Required for Azure network connections.
 - `region` (String) The region of the target VPC. Only required for AWS cross-region connections.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import dfcloud_connection.aws_peering connection-id
+```
