@@ -17,17 +17,18 @@ type NetworkLocation struct {
 }
 
 type Network struct {
-	Id        types.String     `tfsdk:"id"`
-	Name      types.String     `tfsdk:"name"`
-	Location  *NetworkLocation `tfsdk:"location"`
-	CidrBlock types.String     `tfsdk:"cidr_block"`
-	CreatedAt types.Int64      `tfsdk:"created_at"`
-	Status    types.String     `tfsdk:"status"`
-	Vpc       types.Object     `tfsdk:"vpc"`
+	Id            types.String     `tfsdk:"id"`
+	Name          types.String     `tfsdk:"name"`
+	Location      *NetworkLocation `tfsdk:"location"`
+	CidrBlock     types.String     `tfsdk:"cidr_block"`
+	CreatedAt     types.Int64      `tfsdk:"created_at"`
+	Status        types.String     `tfsdk:"status"`
+	Vpc           types.Object     `tfsdk:"vpc"`
+	BYOCAccountID types.String     `tfsdk:"byoc_account_id"`
 }
 
 func IntoNetworkConfig(in Network) *dfcloud.NetworkConfig {
-	return &dfcloud.NetworkConfig{
+	cfg := &dfcloud.NetworkConfig{
 		Name: in.Name.ValueString(),
 		Location: dfcloud.NetworkLocation{
 			Provider: dfcloud.CloudProvider(in.Location.Provider.ValueString()),
@@ -35,10 +36,14 @@ func IntoNetworkConfig(in Network) *dfcloud.NetworkConfig {
 		},
 		CIDRBlock: in.CidrBlock.ValueString(),
 	}
+	if !in.BYOCAccountID.IsNull() && !in.BYOCAccountID.IsUnknown() {
+		cfg.BYOC.AccountID = in.BYOCAccountID.ValueString()
+	}
+	return cfg
 }
 
 func FromNetworkConfig(in *dfcloud.Network) *Network {
-	return &Network{
+	n := &Network{
 		Id:   types.StringValue(in.ID),
 		Name: types.StringValue(in.Name),
 		Location: &NetworkLocation{
@@ -59,6 +64,12 @@ func FromNetworkConfig(in *dfcloud.Network) *Network {
 			},
 		),
 	}
+	if in.BYOC.AccountID != "" {
+		n.BYOCAccountID = types.StringValue(in.BYOC.AccountID)
+	} else {
+		n.BYOCAccountID = types.StringNull()
+	}
+	return n
 }
 
 func WaitUntilNetworkStatus(ctx context.Context, client *dfcloud.Client, id string, status dfcloud.NetworkStatus) (*dfcloud.Network, error) {

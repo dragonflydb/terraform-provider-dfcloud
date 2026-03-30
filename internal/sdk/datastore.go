@@ -47,6 +47,10 @@ func PerformanceTiersString() []string {
 	return ss
 }
 
+type InstanceFamilyConfig struct {
+	Name string `json:"name,omitempty"`
+}
+
 type DatastoreTier struct {
 	// Memory is the maximum number of bytes Dragonfly can consume.
 	Memory uint64 `json:"max_memory_bytes"`
@@ -56,6 +60,9 @@ type DatastoreTier struct {
 
 	// Replicas is the number of Dragonfly replicas (not including the master).
 	Replicas *int `json:"replicas"`
+
+	// BYOCInstanceFamily is the instance family to use for BYOC datastores.
+	BYOCInstanceFamily *InstanceFamilyConfig `json:"byoc_instance_family,omitempty"`
 }
 
 type DatastoreDragonflyConfig struct {
@@ -65,6 +72,10 @@ type DatastoreDragonflyConfig struct {
 	Sidekiq   *bool         `json:"sidekiq"`
 	Memcached *bool         `json:"memcached"`
 	AclRules  *AclRuleArray `json:"acl_rules"`
+}
+
+type BYOCConfig struct {
+	AccountID string `json:"account_id,omitempty"`
 }
 
 // DatastoreConfig contains the datastores configurable fields.
@@ -86,6 +97,8 @@ type DatastoreConfig struct {
 	MaintenanceWindow MaintenanceWindow `json:"maintenance_window,omitempty"`
 
 	DisablePasskey bool `json:"disable_passkey"`
+
+	BYOC BYOCConfig `json:"byoc"`
 }
 
 type MaintenanceWindow struct {

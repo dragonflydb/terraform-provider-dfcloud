@@ -26,6 +26,7 @@ type Datastore struct {
 	Addr              types.String      `tfsdk:"addr"`
 	DisablePassKey    types.Bool        `tfsdk:"disable_pass_key"`
 	MaintenanceWindow types.Object      `tfsdk:"maintenance_window"`
+	BYOCAccountID     types.String      `tfsdk:"byoc_account_id"`
 }
 
 type DatastoreClusterConfig struct {
@@ -39,9 +40,10 @@ type DatastoreLocation struct {
 }
 
 type DatastoreTier struct {
-	Memory          types.Int64  `tfsdk:"max_memory_bytes"`
-	PerformanceTier types.String `tfsdk:"performance_tier"`
-	Replicas        types.Int64  `tfsdk:"replicas"`
+	Memory                 types.Int64  `tfsdk:"max_memory_bytes"`
+	PerformanceTier        types.String `tfsdk:"performance_tier"`
+	Replicas               types.Int64  `tfsdk:"replicas"`
+	BYOCInstanceFamilyName types.String `tfsdk:"byoc_instance_family_name"`
 }
 
 func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
@@ -75,6 +77,12 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 
 	if in.Config.Tier.Replicas != nil {
 		d.Tier.Replicas = types.Int64Value(int64(*in.Config.Tier.Replicas))
+	}
+
+	if in.Config.Tier.BYOCInstanceFamily != nil && in.Config.Tier.BYOCInstanceFamily.Name != "" {
+		d.Tier.BYOCInstanceFamilyName = types.StringValue(in.Config.Tier.BYOCInstanceFamily.Name)
+	} else {
+		d.Tier.BYOCInstanceFamilyName = types.StringNull()
 	}
 
 	if in.Config.MaintenanceWindow.DurationHours != nil || in.Config.MaintenanceWindow.Hour != nil || in.Config.MaintenanceWindow.Weekday != nil {
@@ -115,6 +123,12 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 
 	if in.Config.NetworkID != "" {
 		d.NetworkId = types.StringValue(in.Config.NetworkID)
+	}
+
+	if in.Config.BYOC.AccountID != "" {
+		d.BYOCAccountID = types.StringValue(in.Config.BYOC.AccountID)
+	} else {
+		d.BYOCAccountID = types.StringNull()
 	}
 }
 
@@ -194,6 +208,16 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 	if in.MaintenanceWindow.Attributes()["duration_hours"] != nil {
 		datastore.Config.MaintenanceWindow.DurationHours = lo.ToPtr(int(in.MaintenanceWindow.Attributes()["duration_hours"].(types.Int64).ValueInt64()))
+	}
+
+	if !in.BYOCAccountID.IsNull() && !in.BYOCAccountID.IsUnknown() {
+		datastore.Config.BYOC.AccountID = in.BYOCAccountID.ValueString()
+	}
+
+	if !in.Tier.BYOCInstanceFamilyName.IsNull() && !in.Tier.BYOCInstanceFamilyName.IsUnknown() {
+		datastore.Config.Tier.BYOCInstanceFamily = &dfcloud.InstanceFamilyConfig{
+			Name: in.Tier.BYOCInstanceFamilyName.ValueString(),
+		}
 	}
 
 	return datastore
