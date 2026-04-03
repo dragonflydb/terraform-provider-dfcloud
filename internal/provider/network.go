@@ -71,6 +71,13 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"byoc_account_id": schema.StringAttribute{
+				MarkdownDescription: "The BYOC (Bring Your Own Cloud) account ID to provision the network into.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"vpc": schema.SingleNestedAttribute{
 				MarkdownDescription: "The VPC information for the network.",
 				Computed:            true,

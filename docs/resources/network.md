@@ -34,6 +34,10 @@ resource "dfcloud_network" "network" {
 - `location` (Attributes) The location configuration for the network. (see [below for nested schema](#nestedatt--location))
 - `name` (String) The name of the network.
 
+### Optional
+
+- `byoc_account_id` (String) The BYOC (Bring Your Own Cloud) account ID to provision the network into.
+
 ### Read-Only
 
 - `created_at` (Number) The timestamp when the network was created.

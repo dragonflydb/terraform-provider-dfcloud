@@ -104,6 +104,7 @@ resource "dfcloud_datastore" "private" {
 
 ### Optional
 
+- `byoc_account_id` (String) The BYOC (Bring Your Own Cloud) account ID to provision the datastore into.
 - `cluster` (Attributes) The cluster configuration for the datastore. (see [below for nested schema](#nestedatt--cluster))
 - `disable_pass_key` (Boolean) Disable the passkey for the datastore.
 - `dragonfly` (Attributes) Dragonfly-specific configuration. (see [below for nested schema](#nestedatt--dragonfly))
@@ -161,6 +162,7 @@ Required:
 
 Optional:
 
+- `byoc_instance_family_name` (String) The instance family name to use for BYOC datastores.
 - `replicas` (Number) The number of replicas for the datastore. Default is 0.
 
 

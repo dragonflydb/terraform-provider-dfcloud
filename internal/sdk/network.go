@@ -37,6 +37,7 @@ type NetworkConfig struct {
 	Name      string          `json:"name"`
 	Location  NetworkLocation `json:"location"`
 	CIDRBlock string          `json:"cidr_block"`
+	BYOC      BYOCConfig      `json:"byoc"`
 }
 
 type Network struct {

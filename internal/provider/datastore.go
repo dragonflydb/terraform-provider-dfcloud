@@ -139,11 +139,25 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 						Computed:            true,
 					},
+					"byoc_instance_family_name": schema.StringAttribute{
+						MarkdownDescription: "The instance family name to use for BYOC datastores.",
+						Optional:            true,
+					},
 				},
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network the datastore should be placed into.",
 				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"byoc_account_id": schema.StringAttribute{
+				MarkdownDescription: "The BYOC (Bring Your Own Cloud) account ID to provision the datastore into.",
+				Optional:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"dragonfly": schema.SingleNestedAttribute{
 				MarkdownDescription: "Dragonfly-specific configuration.",
