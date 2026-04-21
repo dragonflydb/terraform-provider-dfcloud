@@ -21,12 +21,13 @@ type Connection struct {
 }
 
 type PeerConfigModel struct {
-	AccountID          types.String `tfsdk:"account_id"`
-	VPCID              types.String `tfsdk:"vpc_id"`
-	Region             types.String `tfsdk:"region"`
-	AzureResourceGroup types.String `tfsdk:"azure_resource_group"`
-	AzureTenantID      types.String `tfsdk:"azure_tenant_id"`
-	AzureAppObjectID   types.String `tfsdk:"azure_app_object_id"`
+	AccountID              types.String `tfsdk:"account_id"`
+	VPCID                  types.String `tfsdk:"vpc_id"`
+	Region                 types.String `tfsdk:"region"`
+	AzureResourceGroup     types.String `tfsdk:"azure_resource_group"`
+	AzureTenantID          types.String `tfsdk:"azure_tenant_id"`
+	AzureAppObjectID       types.String `tfsdk:"azure_app_object_id"`
+	AzureUseRemoteGateways types.Bool   `tfsdk:"azure_use_remote_gateways"`
 }
 
 func IntoPeerConfig(in *PeerConfigModel) dfcloud.PeerConfig {
@@ -35,9 +36,10 @@ func IntoPeerConfig(in *PeerConfigModel) dfcloud.PeerConfig {
 		VPCID:     in.VPCID.ValueString(),
 		Region:    in.Region.ValueString(),
 		AzureConfig: dfcloud.AzureConfig{
-			ResourceGroup: in.AzureResourceGroup.ValueString(),
-			TenantID:      in.AzureTenantID.ValueString(),
-			AppObjectID:   in.AzureAppObjectID.ValueString(),
+			ResourceGroup:     in.AzureResourceGroup.ValueString(),
+			TenantID:          in.AzureTenantID.ValueString(),
+			AppObjectID:       in.AzureAppObjectID.ValueString(),
+			UseRemoteGateways: in.AzureUseRemoteGateways.ValueBool(),
 		},
 	}
 }
@@ -59,13 +61,18 @@ func optionalString(s string) types.String {
 
 func FromConnectionConfig(in *dfcloud.Connection) *Connection {
 	az := in.Config.Peer.AzureConfig
+	useRemoteGateways := types.BoolNull()
+	if az.TenantID != "" {
+		useRemoteGateways = types.BoolValue(az.UseRemoteGateways)
+	}
 	peer := &PeerConfigModel{
-		AccountID:          types.StringValue(in.Config.Peer.AccountID),
-		VPCID:              types.StringValue(in.Config.Peer.VPCID),
-		Region:             types.StringValue(in.Config.Peer.Region),
-		AzureResourceGroup: optionalString(az.ResourceGroup),
-		AzureTenantID:      optionalString(az.TenantID),
-		AzureAppObjectID:   optionalString(az.AppObjectID),
+		AccountID:              types.StringValue(in.Config.Peer.AccountID),
+		VPCID:                  types.StringValue(in.Config.Peer.VPCID),
+		Region:                 types.StringValue(in.Config.Peer.Region),
+		AzureResourceGroup:     optionalString(az.ResourceGroup),
+		AzureTenantID:          optionalString(az.TenantID),
+		AzureAppObjectID:       optionalString(az.AppObjectID),
+		AzureUseRemoteGateways: useRemoteGateways,
 	}
 	return &Connection{
 		ConnectionID: types.StringValue(in.ID),
