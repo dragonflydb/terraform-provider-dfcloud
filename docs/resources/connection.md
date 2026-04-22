@@ -67,6 +67,7 @@ Optional:
 - `azure_app_object_id` (String) The object ID of the Azure AD application used for peering. Required for Azure network connections.
 - `azure_resource_group` (String) The Azure resource group of the peer VNet. Required for Azure network connections.
 - `azure_tenant_id` (String) The Azure tenant ID. Required for Azure network connections.
+- `azure_use_remote_gateways` (Boolean) Whether to use remote gateways in the Azure VNet peering. Defaults to false.
 - `region` (String) The region of the target VPC. Only required for AWS cross-region connections.
 
 ## Import

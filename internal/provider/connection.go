@@ -9,11 +9,13 @@ import (
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/samber/lo"
 )
 
 type ConnectionResource struct {
@@ -91,6 +93,14 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						MarkdownDescription: "The object ID of the Azure AD application used for peering. Required for Azure network connections.",
 						Optional:            true,
 					},
+					"azure_use_remote_gateways": schema.BoolAttribute{
+						MarkdownDescription: "Whether to use remote gateways in the Azure VNet peering. Defaults to false.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
+						},
+					},
 				},
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.RequiresReplace(),
@@ -118,6 +128,7 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("failed to get plan into state", "failed to get plan into state")
+		return
 	}
 
 	connConfig := resource_model.IntoConnectionConfig(state)
@@ -140,6 +151,12 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 	state.Status = types.StringValue(string(respConn.Status))
 	state.StatusDetail = types.StringValue(respConn.StatusDetail)
 	state.PeerConnID = types.StringValue(respConn.PeerConnectionID)
+	azConfig := lo.FromPtr(respConn.Config).Peer.AzureConfig
+	if azConfig.TenantID != "" {
+		state.Peer.AzureUseRemoteGateways = types.BoolValue(azConfig.UseRemoteGateways)
+	} else {
+		state.Peer.AzureUseRemoteGateways = types.BoolNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
@@ -174,6 +191,12 @@ func (r *ConnectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	state.Status = types.StringValue(string(respConn.Status))
 	state.StatusDetail = types.StringValue(respConn.StatusDetail)
 	state.PeerConnID = types.StringValue(respConn.PeerConnectionID)
+	azConfig := lo.FromPtr(respConn.Config).Peer.AzureConfig
+	if azConfig.TenantID != "" {
+		state.Peer.AzureUseRemoteGateways = types.BoolValue(azConfig.UseRemoteGateways)
+	} else {
+		state.Peer.AzureUseRemoteGateways = types.BoolNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

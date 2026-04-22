@@ -28,9 +28,10 @@ const (
 
 // AzureConfig holds Azure-specific peering options.
 type AzureConfig struct {
-	ResourceGroup string `json:"resource_group"`
-	TenantID      string `json:"tenant_id"`
-	AppObjectID   string `json:"app_object_id"`
+	ResourceGroup    string `json:"resource_group"`
+	TenantID         string `json:"tenant_id"`
+	AppObjectID      string `json:"app_object_id"`
+	UseRemoteGateways bool   `json:"use_remote_gateways"`
 }
 
 // PeerConfig describes the VPC to connect to.
