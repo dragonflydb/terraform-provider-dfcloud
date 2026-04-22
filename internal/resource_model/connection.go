@@ -68,7 +68,7 @@ func FromConnectionConfig(in *dfcloud.Connection) *Connection {
 	peer := &PeerConfigModel{
 		AccountID:              types.StringValue(in.Config.Peer.AccountID),
 		VPCID:                  types.StringValue(in.Config.Peer.VPCID),
-		Region:                 types.StringValue(in.Config.Peer.Region),
+		Region:                 optionalString(in.Config.Peer.Region),
 		AzureResourceGroup:     optionalString(az.ResourceGroup),
 		AzureTenantID:          optionalString(az.TenantID),
 		AzureAppObjectID:       optionalString(az.AppObjectID),
