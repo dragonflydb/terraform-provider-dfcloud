@@ -123,12 +123,9 @@ resource "dfcloud_datastore" "private" {
 
 Required:
 
+- `availability_zones` (List of String) The availability zones for the datastore location.
 - `provider` (String) The provider for the datastore location.
 - `region` (String) The region for the datastore location.
-
-Optional:
-
-- `availability_zones` (List of String) The availability zones for the datastore location.
 
 
 <a id="nestedatt--tier"></a>
