@@ -73,8 +73,9 @@ func TestAcc_DatastoreResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "name", name),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.provider", "aws"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "eu-west-1"),
-					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.1", "euw1-az2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "3000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "1"),
@@ -136,8 +137,9 @@ func TestAcc_DatastoreResource_withCluster(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "name", name),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.provider", "aws"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.region", "eu-west-1"),
-					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "1"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.#", "2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.0", "euw1-az2"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "location.availability_zones.1", "euw1-az2"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "cluster.shard_memory", "3000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "6000000000"),
@@ -175,7 +177,7 @@ resource "dfcloud_datastore" "test" {
   location = {
     provider = "aws"
     region   = "eu-west-1"
-    availability_zones = ["euw1-az2"]
+    availability_zones = ["euw1-az2", "euw1-az2"]
   }
 
   tier = {
@@ -195,7 +197,7 @@ resource "dfcloud_datastore" "test" {
   location = {
     provider = "aws"
     region   = "eu-west-1"
-    availability_zones = ["euw1-az2"]
+    availability_zones = ["euw1-az2", "euw1-az2"]
   }
 
   tier = {
