@@ -14,7 +14,14 @@ import (
 )
 
 type errorResponse struct {
-	Error string `json:"error"`
+	// StatusCode contains the HTTP status code.
+	StatusCode int `json:"status_code"`
+
+	// ErrorCode contains a Dragonfly cloud error code.
+	ErrorCode string `json:"error_code,omitempty"`
+
+	// Message contains the error message to return to the user.
+	Message string `json:"message"`
 }
 
 type clientOptions struct {
@@ -354,7 +361,7 @@ func (c *Client) request(
 			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
 				return nil, fmt.Errorf("bad status: %d", resp.StatusCode)
 			}
-			return nil, fmt.Errorf("bad status: %d: %s", resp.StatusCode, errResp.Error)
+			return nil, fmt.Errorf("bad status: %d: %s", resp.StatusCode, errResp.Message)
 		}
 		return nil, fmt.Errorf("bad status: %d", resp.StatusCode)
 	}
