@@ -39,6 +39,7 @@ resource "dfcloud_datastore" "cache" {
   location = {
     region   = "us-east-1"
     provider = "aws"
+    availability_zones = "use1-az1"
   }
   network_id = dfcloud_network.network.id
   tier = {

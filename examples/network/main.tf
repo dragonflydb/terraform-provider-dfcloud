@@ -8,7 +8,6 @@ terraform {
 
 provider "dfcloud" {
   # Configuration options
-  api_host = "api.dev.dragonflydb.cloud"
 }
 
 

@@ -161,6 +161,7 @@ Optional:
 
 - `byoc_instance_family_name` (String) The instance family name to use for BYOC datastores.
 - `replicas` (Number) The number of replicas for the datastore. Default is 0.
+- `ssd` (Boolean) Enables SSD tiering. Default is false.
 
 
 <a id="nestedatt--cluster"></a>

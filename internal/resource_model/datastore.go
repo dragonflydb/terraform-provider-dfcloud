@@ -44,6 +44,7 @@ type DatastoreTier struct {
 	PerformanceTier        types.String `tfsdk:"performance_tier"`
 	Replicas               types.Int64  `tfsdk:"replicas"`
 	BYOCInstanceFamilyName types.String `tfsdk:"byoc_instance_family_name"`
+	SSD                    types.Bool   `tfsdk:"ssd"`
 }
 
 func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
@@ -84,6 +85,8 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	} else {
 		d.Tier.BYOCInstanceFamilyName = types.StringNull()
 	}
+
+	d.Tier.SSD = types.BoolValue(lo.FromPtr(in.Config.Tier.SSD))
 
 	if in.Config.MaintenanceWindow.DurationHours != nil || in.Config.MaintenanceWindow.Hour != nil || in.Config.MaintenanceWindow.Weekday != nil {
 		d.MaintenanceWindow = types.ObjectValueMust(map[string]attr.Type{
@@ -145,6 +148,7 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 				Memory:          uint64(in.Tier.Memory.ValueInt64()),
 				PerformanceTier: dfcloud.PerformanceTier(in.Tier.PerformanceTier.ValueString()),
 				Replicas:        lo.ToPtr(int(in.Tier.Replicas.ValueInt64())),
+				SSD:             in.Tier.SSD.ValueBoolPointer(),
 			},
 		},
 	}
