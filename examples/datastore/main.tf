@@ -7,14 +7,16 @@ terraform {
 }
 
 provider "dfcloud" {
+  # Configuration options
 }
 
 resource "dfcloud_datastore" "cache" {
   name = "frontend-cache"
 
   location = {
-    region   = "us-central1"
     provider = "gcp"
+    region   = "us-central1"
+    availability_zones = ["us-central1-a", "us-central1-a"]
   }
  
   tier = {

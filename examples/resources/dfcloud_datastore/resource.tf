@@ -5,6 +5,7 @@ resource "dfcloud_datastore" "cache" {
   location = {
     region   = "us-central1"
     provider = "gcp"
+    availability_zones = ["us-central1-a", "us-central1-a"]
   }
 
   tier = {
@@ -23,8 +24,9 @@ resource "dfcloud_datastore" "cache_cluster" {
   name = "frontend-cache-cluster"
 
   location = {
-    region   = "us-central1"
     provider = "gcp"
+    region   = "us-central1"
+    availability_zones = ["us-central1-a", "us-central1-a"]
   }
 
   tier = {

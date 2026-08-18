@@ -63,6 +63,9 @@ type DatastoreTier struct {
 
 	// BYOCInstanceFamily is the instance family to use for BYOC datastores.
 	BYOCInstanceFamily *InstanceFamilyConfig `json:"byoc_instance_family,omitempty"`
+
+	// Enables SSD tiering.
+	SSD *bool `json:"ssd,omitempty"`
 }
 
 type DatastoreDragonflyConfig struct {

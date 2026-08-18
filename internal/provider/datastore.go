@@ -147,6 +147,14 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						MarkdownDescription: "The instance family name to use for BYOC datastores.",
 						Optional:            true,
 					},
+					"ssd": schema.BoolAttribute{
+						MarkdownDescription: "Enables SSD tiering. Default is false.",
+						Optional:            true,
+						Computed:            true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.RequiresReplace(),
+						},
+					},
 				},
 			},
 			"network_id": schema.StringAttribute{
