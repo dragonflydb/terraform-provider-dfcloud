@@ -40,11 +40,12 @@ type DatastoreLocation struct {
 }
 
 type DatastoreTier struct {
-	Memory                 types.Int64  `tfsdk:"max_memory_bytes"`
-	PerformanceTier        types.String `tfsdk:"performance_tier"`
-	Replicas               types.Int64  `tfsdk:"replicas"`
-	BYOCInstanceFamilyName types.String `tfsdk:"byoc_instance_family_name"`
-	SSD                    types.Bool   `tfsdk:"ssd"`
+	Memory                   types.Int64  `tfsdk:"max_memory_bytes"`
+	PerformanceTier          types.String `tfsdk:"performance_tier"`
+	Replicas                 types.Int64  `tfsdk:"replicas"`
+	BYOCInstanceFamilyName   types.String `tfsdk:"byoc_instance_family_name"`
+	CustomInstanceFamilyName types.String `tfsdk:"custom_instance_family_name"`
+	SSD                      types.Bool   `tfsdk:"ssd"`
 }
 
 func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
@@ -84,6 +85,12 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 		d.Tier.BYOCInstanceFamilyName = types.StringValue(in.Config.Tier.BYOCInstanceFamily.Name)
 	} else {
 		d.Tier.BYOCInstanceFamilyName = types.StringNull()
+	}
+
+	if in.Config.Tier.CustomInstanceFamily != nil && in.Config.Tier.CustomInstanceFamily.Name != "" {
+		d.Tier.CustomInstanceFamilyName = types.StringValue(in.Config.Tier.CustomInstanceFamily.Name)
+	} else {
+		d.Tier.CustomInstanceFamilyName = types.StringNull()
 	}
 
 	d.Tier.SSD = types.BoolValue(lo.FromPtr(in.Config.Tier.SSD))
@@ -221,6 +228,12 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 	if !in.Tier.BYOCInstanceFamilyName.IsNull() && !in.Tier.BYOCInstanceFamilyName.IsUnknown() {
 		datastore.Config.Tier.BYOCInstanceFamily = &dfcloud.InstanceFamilyConfig{
 			Name: in.Tier.BYOCInstanceFamilyName.ValueString(),
+		}
+	}
+
+	if !in.Tier.CustomInstanceFamilyName.IsNull() && !in.Tier.CustomInstanceFamilyName.IsUnknown() {
+		datastore.Config.Tier.CustomInstanceFamily = &dfcloud.InstanceFamilyConfig{
+			Name: in.Tier.CustomInstanceFamilyName.ValueString(),
 		}
 	}
 
