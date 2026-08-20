@@ -152,6 +152,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 						Optional:            true,
 						Computed:            true,
 						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.UseStateForUnknown(),
 							boolplanmodifier.RequiresReplace(),
 						},
 					},
