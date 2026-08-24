@@ -20,6 +20,7 @@ resource "dfcloud_datastore" "cache" {
   location = {
     region   = "us-central1"
     provider = "gcp"
+    availability_zones = ["us-central1-a", "us-central1-a"]
   }
 
   tier = {
@@ -38,8 +39,9 @@ resource "dfcloud_datastore" "cache_cluster" {
   name = "frontend-cache-cluster"
 
   location = {
-    region   = "us-central1"
     provider = "gcp"
+    region   = "us-central1"
+    availability_zones = ["us-central1-a", "us-central1-a"]
   }
 
   tier = {
@@ -142,12 +144,14 @@ Required:
   | Provider | Tier     | Permitted values (bytes)                                                                                       |
   |----------|----------|----------------------------------------------------------------------------------------------------------------|
   | AWS      | dev      | `3e9`                                                                                                          |
-  | AWS      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                 |
+  | AWS      | byoc     | `3e9`, `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                          |
+  | AWS      | custom   | `3e9`, `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                          |
   | AWS      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `400e9`                                                           |
   | AWS      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |
   | AWS      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`                                                          |
   | GCP      | dev      | `3e9`                                                                                                          |
-  | GCP      | byoc     | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                        |
+  | GCP      | byoc     | `3e9`, `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                 |
+  | GCP      | custom   | `3e9`, `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                 |
   | GCP      | standard | `12.5e9`, `25e9`, `50e9`, `100e9`, `200e9`, `300e9`, `400e9`                                                  |
   | GCP      | enhanced | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`, `250e9`, `300e9`, `400e9`                      |
   | GCP      | extreme  | `6.25e9`, `12.5e9`, `25e9`, `50e9`, `100e9`, `150e9`, `200e9`                                                 |
@@ -160,6 +164,7 @@ Required:
 Optional:
 
 - `byoc_instance_family_name` (String) The instance family name to use for BYOC datastores.
+- `custom_instance_family_name` (String) The instance family name to use for custom datastores.
 - `replicas` (Number) The number of replicas for the datastore. Default is 0.
 - `ssd` (Boolean) Enables SSD tiering. Default is false.
 
