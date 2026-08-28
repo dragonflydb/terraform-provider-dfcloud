@@ -112,6 +112,7 @@ resource "dfcloud_datastore" "private" {
 - `dragonfly` (Attributes) Dragonfly-specific configuration. (see [below for nested schema](#nestedatt--dragonfly))
 - `maintenance_window` (Attributes) The maintenance window configuration for the datastore. (see [below for nested schema](#nestedatt--maintenance_window))
 - `network_id` (String) The ID of the network the datastore should be placed into.
+- `tags` (Map of String) User-defined tags for the datastore.
 
 ### Read-Only
 
