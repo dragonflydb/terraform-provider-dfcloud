@@ -27,6 +27,7 @@ type Datastore struct {
 	DisablePassKey    types.Bool        `tfsdk:"disable_pass_key"`
 	MaintenanceWindow types.Object      `tfsdk:"maintenance_window"`
 	BYOCAccountID     types.String      `tfsdk:"byoc_account_id"`
+	Tags              types.Map         `tfsdk:"tags"`
 }
 
 type DatastoreClusterConfig struct {
@@ -140,6 +141,12 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	} else {
 		d.BYOCAccountID = types.StringNull()
 	}
+
+	if len(in.Config.Tags) > 0 {
+		d.Tags, _ = types.MapValueFrom(ctx, types.StringType, in.Config.Tags)
+	} else {
+		d.Tags = types.MapNull(types.StringType)
+	}
 }
 
 func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
@@ -235,6 +242,12 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 		datastore.Config.Tier.CustomInstanceFamily = &dfcloud.InstanceFamilyConfig{
 			Name: in.Tier.CustomInstanceFamilyName.ValueString(),
 		}
+	}
+
+	if !in.Tags.IsNull() && !in.Tags.IsUnknown() {
+		var tags map[string]string
+		_ = in.Tags.ElementsAs(context.Background(), &tags, false)
+		datastore.Config.Tags = tags
 	}
 
 	return datastore

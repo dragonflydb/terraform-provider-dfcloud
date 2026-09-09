@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
@@ -236,6 +237,11 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					},
 				},
 			},
+			"tags": schema.MapAttribute{
+				MarkdownDescription: "User-defined tags for the datastore.",
+				ElementType:         types.StringType,
+				Optional:            true,
+			},
 			"maintenance_window": schema.SingleNestedAttribute{
 				MarkdownDescription: "The maintenance window configuration for the datastore.",
 				Optional:            true,
@@ -381,29 +387,74 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	updateDatastore := resource_model.IntoDatastoreConfig(plan)
-	respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &updateDatastore.Config)
-	if err != nil {
-		resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
-		return
+	tagsChanged := !plan.Tags.Equal(state.Tags)
+	nonTagsChanged := datastoreConfigChangedExcludingTags(plan, state)
+
+	if nonTagsChanged {
+		updateDatastore := resource_model.IntoDatastoreConfig(plan)
+		respDatastore, err = r.client.UpdateDatastore(ctx, state.ID.ValueString(), &updateDatastore.Config)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Updating Datastore", err.Error())
+			return
+		}
+
+		waitForDatastoreStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		respDatastore, err = resource_model.WaitForDatastoreStatus(waitForDatastoreStatusCtx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Waiting for Datastore Update", err.Error())
+			return
+		}
+
+		tflog.Info(ctx, "updated datastore", map[string]any{
+			"datastore_id": respDatastore.ID,
+			"status":       respDatastore.Status,
+		})
 	}
 
-	waitForDatastoreStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-	respDatastore, err = resource_model.WaitForDatastoreStatus(waitForDatastoreStatusCtx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
-	if err != nil {
-		resp.Diagnostics.AddError("Error Waiting for Datastore Update", err.Error())
-		return
+	if tagsChanged {
+		tags := make(map[string]string)
+		if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
+			diags = plan.Tags.ElementsAs(ctx, &tags, false)
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+		}
+
+		updatedTags, err := r.client.UpdateDatastoreTags(ctx, respDatastore.ID, tags)
+		if err != nil {
+			resp.Diagnostics.AddError("Error Updating Datastore Tags", err.Error())
+			return
+		}
+		respDatastore.Config.Tags = updatedTags
+
+		tflog.Info(ctx, "updated datastore tags", map[string]any{
+			"datastore_id": respDatastore.ID,
+		})
 	}
 
-	tflog.Info(ctx, "updated datastore", map[string]any{
-		"datastore_id": respDatastore.ID,
-		"status":       respDatastore.Status,
-	})
-
+	// respDatastore reflects only the fields covered by the calls made above
+	// (full config update and/or tags-only update). When only tags changed,
+	// it still carries the current full config from the GetDatastore call
+	// above, so this remains a complete, accurate state.
 	plan.FromConfig(ctx, respDatastore)
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
+}
+
+// datastoreConfigChangedExcludingTags reports whether the plan differs from
+// the current state in any field other than tags. Tags are managed via a
+// dedicated endpoint, so they must not by themselves trigger a full
+// datastore update.
+func datastoreConfigChangedExcludingTags(plan, state resource_model.Datastore) bool {
+	planConfig := resource_model.IntoDatastoreConfig(plan).Config
+	stateConfig := resource_model.IntoDatastoreConfig(state).Config
+
+	planConfig.Tags = nil
+	stateConfig.Tags = nil
+
+	return !reflect.DeepEqual(planConfig, stateConfig)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
