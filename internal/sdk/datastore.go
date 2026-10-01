@@ -89,10 +89,13 @@ type DatastoreConfig struct {
 	Name string `json:"name"`
 	// NetworkID is an optional ID of a dedicated network to provision the
 	// datastore in.
-	NetworkID string                 `json:"network_id"`
-	Location  DatastoreLocation      `json:"location"`
-	Tier      DatastoreTier          `json:"tier"`
-	Cluster   DatastoreClusterConfig `json:"cluster"`
+	NetworkID string `json:"network_id"`
+	// NetworkAllowedIPs is a list of IP addresses or CIDR blocks that
+	// can access the datastore. If empty, all IPs can access the datastore.
+	NetworkAllowedIPs []string               `json:"network_allowed_ips"` //nolint:tagliatelle
+	Location          DatastoreLocation      `json:"location"`
+	Tier              DatastoreTier          `json:"tier"`
+	Cluster           DatastoreClusterConfig `json:"cluster"`
 	// Dragonfly contains the Dragonfly node configuration.
 	Dragonfly DatastoreDragonflyConfig `json:"dragonfly"`
 
