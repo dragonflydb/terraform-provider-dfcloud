@@ -17,6 +17,7 @@ type Datastore struct {
 	ID                types.String      `tfsdk:"id"`
 	Name              types.String      `tfsdk:"name"`
 	NetworkId         types.String      `tfsdk:"network_id"`
+	NetworkAllowedIPs types.List        `tfsdk:"network_allowed_ips"`
 	Location          DatastoreLocation `tfsdk:"location"`
 	Tier              DatastoreTier     `tfsdk:"tier"`
 	Cluster           types.Object      `tfsdk:"cluster"`
@@ -135,6 +136,8 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 		d.NetworkId = types.StringValue(in.Config.NetworkID)
 	}
 
+	d.NetworkAllowedIPs, _ = types.ListValueFrom(ctx, types.StringType, in.Config.NetworkAllowedIPs)
+
 	if in.Config.BYOC.AccountID != "" {
 		d.BYOCAccountID = types.StringValue(in.Config.BYOC.AccountID)
 	} else {
@@ -170,6 +173,10 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 	if !in.NetworkId.IsNull() {
 		datastore.Config.NetworkID = in.NetworkId.ValueString()
+	}
+
+	if !in.NetworkAllowedIPs.IsNull() && !in.NetworkAllowedIPs.IsUnknown() {
+		_ = in.NetworkAllowedIPs.ElementsAs(context.Background(), &datastore.Config.NetworkAllowedIPs, false)
 	}
 
 	if in.DisablePassKey.ValueBool() && in.Password.IsUnknown() {
