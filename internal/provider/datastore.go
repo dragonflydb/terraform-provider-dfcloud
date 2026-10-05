@@ -176,6 +176,15 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"network_allowed_ips": schema.ListAttribute{
+				MarkdownDescription: "A list of IP addresses or CIDR blocks that can access the datastore. If empty, all IPs can access the datastore.",
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"dragonfly": schema.SingleNestedAttribute{
 				MarkdownDescription: "Dragonfly-specific configuration.",
 				Optional:            true,

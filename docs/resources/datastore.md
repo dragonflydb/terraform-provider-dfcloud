@@ -111,6 +111,7 @@ resource "dfcloud_datastore" "private" {
 - `disable_pass_key` (Boolean) Disable the passkey for the datastore.
 - `dragonfly` (Attributes) Dragonfly-specific configuration. (see [below for nested schema](#nestedatt--dragonfly))
 - `maintenance_window` (Attributes) The maintenance window configuration for the datastore. (see [below for nested schema](#nestedatt--maintenance_window))
+- `network_allowed_ips` (List of String) A list of IP addresses or CIDR blocks that can access the datastore. If empty, all IPs can access the datastore.
 - `network_id` (String) The ID of the network the datastore should be placed into.
 
 ### Read-Only
