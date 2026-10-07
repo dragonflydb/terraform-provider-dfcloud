@@ -311,6 +311,13 @@ func (r *datastoreResource) Create(ctx context.Context, req resource.CreateReque
 	respDatastore, err = resource_model.WaitForDatastoreStatus(ctx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Datastore", err.Error())
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			err := r.client.DeleteDatastore(ctx, respDatastore.ID)
+			resp.Diagnostics.AddError("Error Cleaning Up Datastore", err.Error())
+		}
+
 		return
 	}
 
