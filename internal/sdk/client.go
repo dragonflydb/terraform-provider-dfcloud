@@ -191,6 +191,28 @@ func (c *Client) DeleteDatastore(ctx context.Context, id string) error {
 	return nil
 }
 
+// UpdateDatastoreTags updates the user-defined tags for the datastore
+// identified by id.
+func (c *Client) UpdateDatastoreTags(ctx context.Context, id string, tags map[string]string) (map[string]string, error) {
+	b, _ := json.Marshal(&ResourceTags{
+		ResourceID: id,
+		Tags:       tags,
+	})
+
+	r, err := c.request(ctx, http.MethodPut, "/v1/datastores/"+id+"/tags", b)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var resourceTags ResourceTags
+	if err := json.NewDecoder(r).Decode(&resourceTags); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	return resourceTags.Tags, nil
+}
+
 func (c *Client) GetNetwork(ctx context.Context, id string) (*Network, error) {
 	r, err := c.request(ctx, http.MethodGet, "/v1/networks/"+id, nil)
 	if err != nil {

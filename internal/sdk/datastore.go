@@ -108,6 +108,9 @@ type DatastoreConfig struct {
 	DisablePasskey bool `json:"disable_passkey"`
 
 	BYOC BYOCConfig `json:"byoc"`
+
+	// Tags are user-defined tags for the datastore.
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 type MaintenanceWindow struct {
@@ -134,6 +137,13 @@ type BackupPolicy struct {
 	EveryDay  *bool `json:"every_day,omitempty"`
 	Hours     []int `json:"hours,omitempty"`
 	WeekDays  []int `json:"weekdays,omitempty"`
+}
+
+// ResourceTags represents the user-defined tags associated with a resource,
+// such as a datastore.
+type ResourceTags struct {
+	ResourceID string            `json:"resource_id"`
+	Tags       map[string]string `json:"tags"`
 }
 
 type DatastoreDashboard struct {
