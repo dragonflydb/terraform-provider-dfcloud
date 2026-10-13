@@ -306,20 +306,29 @@ func (r *datastoreResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	waitDatastoreCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
-	respDatastore, err = resource_model.WaitForDatastoreStatus(ctx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
+	awaitedDatastore, err := resource_model.WaitForDatastoreStatus(waitDatastoreCtx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		err := r.client.DeleteDatastore(ctx, respDatastore.ID)
+		if err != nil {
+			resp.Diagnostics.AddWarning("Error Cleaning Up Datastore: "+respDatastore.ID, err.Error())
+		}
+		return
+	}
 	if err != nil {
 		resp.Diagnostics.AddError("Error Creating Datastore", err.Error())
 		return
 	}
 
-	tflog.Info(ctx, "created datastore", map[string]any{
-		"datastore_id": respDatastore.ID,
-		"status":       respDatastore.Status,
+	tflog.Debug(ctx, "created datastore", map[string]any{
+		"datastore_id": awaitedDatastore.ID,
+		"status":       awaitedDatastore.Status,
 	})
 
-	plan.FromConfig(ctx, respDatastore)
+	plan.FromConfig(ctx, awaitedDatastore)
 	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
@@ -352,7 +361,7 @@ func (r *datastoreResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	tflog.Info(ctx, "read datastore", map[string]any{
+	tflog.Debug(ctx, "read datastore", map[string]any{
 		"datastore_id": respDatastore.ID,
 		"status":       respDatastore.Status,
 	})
@@ -397,7 +406,7 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	waitForDatastoreStatusCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	waitForDatastoreStatusCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 	respDatastore, err = resource_model.WaitForDatastoreStatus(waitForDatastoreStatusCtx, r.client, respDatastore.ID, dfcloud.DatastoreStatusActive)
 	if err != nil {
@@ -405,7 +414,7 @@ func (r *datastoreResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Info(ctx, "updated datastore", map[string]any{
+	tflog.Debug(ctx, "updated datastore", map[string]any{
 		"datastore_id": respDatastore.ID,
 		"status":       respDatastore.Status,
 	})
@@ -447,7 +456,7 @@ func (r *datastoreResource) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 
-	tflog.Info(ctx, "deleted datastore", map[string]any{
+	tflog.Debug(ctx, "deleted datastore", map[string]any{
 		"datastore_id": state.ID.ValueString(),
 	})
 }
