@@ -177,7 +177,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				},
 			},
 			"network_allowed_ips": schema.ListAttribute{
-				MarkdownDescription: "A list of IP addresses or CIDR blocks that can access the datastore. If empty, all IPs can access the datastore.",
+				MarkdownDescription: "A list of IP addresses or CIDR blocks that can access the datastore. If unset, defaults to 0.0.0.0/0 and allows all.",
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
