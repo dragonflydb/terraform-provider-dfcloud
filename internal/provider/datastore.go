@@ -9,6 +9,7 @@ import (
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -104,6 +105,7 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Attributes: map[string]schema.Attribute{
 					"provider": schema.StringAttribute{
 						MarkdownDescription: "The provider for the datastore location.",
+						Validators:          []validator.String{stringvalidator.OneOf("aws", "gcp", "azure")},
 						Required:            true,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.RequiresReplace(),
@@ -283,6 +285,10 @@ func (r *datastoreResource) Configure(_ context.Context, req resource.ConfigureR
 	}
 
 	r.client = client
+}
+
+func (r *datastoreResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+
 }
 
 // Create a new resource.
@@ -493,7 +499,8 @@ func (m clusterPlanModifier) PlanModifyObject(ctx context.Context, req planmodif
 }
 
 var (
-	_ resource.Resource                = &datastoreResource{}
-	_ resource.ResourceWithConfigure   = &datastoreResource{}
-	_ resource.ResourceWithImportState = &datastoreResource{}
+	_ resource.Resource                   = &datastoreResource{}
+	_ resource.ResourceWithConfigure      = &datastoreResource{}
+	_ resource.ResourceWithImportState    = &datastoreResource{}
+	_ resource.ResourceWithValidateConfig = &datastoreResource{}
 )

@@ -7,27 +7,29 @@ import (
 
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type NetworkResource struct {
+type networkResource struct {
 	client *dfcloud.Client
 }
 
 func NewNetworkResource() resource.Resource {
-	return &NetworkResource{}
+	return &networkResource{}
 }
 
-func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *networkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "dfcloud_network"
 }
 
-func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *networkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Dragonfly network.",
 		Attributes: map[string]schema.Attribute{
@@ -53,6 +55,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Attributes: map[string]schema.Attribute{
 					"provider": schema.StringAttribute{
 						MarkdownDescription: "The provider for the network location.",
+						Validators:          []validator.String{stringvalidator.OneOf("aws", "gcp", "azure")},
 						Required:            true,
 					},
 					"region": schema.StringAttribute{
@@ -96,7 +99,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *networkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -110,7 +113,7 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var state resource_model.Network
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -138,7 +141,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
-func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state resource_model.Network
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -179,7 +182,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var state resource_model.Network
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -213,7 +216,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
 
-func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *networkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state *resource_model.Network
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -246,7 +249,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *networkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	network, err := r.client.GetNetwork(ctx, req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to get network", err.Error())
@@ -258,6 +261,6 @@ func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 var (
-	_ resource.Resource                = &NetworkResource{}
-	_ resource.ResourceWithImportState = &NetworkResource{}
+	_ resource.Resource                = &networkResource{}
+	_ resource.ResourceWithImportState = &networkResource{}
 )
