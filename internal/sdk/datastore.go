@@ -91,7 +91,7 @@ type DatastoreConfig struct {
 	// datastore in.
 	NetworkID string `json:"network_id"`
 	// NetworkAllowedIPs is a list of IP addresses or CIDR blocks that
-	// can access the datastore. If empty, all IPs can access the datastore.
+	// can access the datastore.
 	NetworkAllowedIPs []string               `json:"network_allowed_ips"` //nolint:tagliatelle
 	Location          DatastoreLocation      `json:"location"`
 	Tier              DatastoreTier          `json:"tier"`
