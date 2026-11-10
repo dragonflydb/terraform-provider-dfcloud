@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -163,6 +164,70 @@ func TestAcc_DatastoreResource_withCluster(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestAcc_DatastoreResource_withFlagPolicy attaches an existing flag policy to
+// a datastore and then detaches it. Flag policies are not managed by this
+// provider, so the test needs the ID of a policy in the test account and is
+// skipped unless DFCLOUD_TEST_FLAG_POLICY_ID is set.
+func TestAcc_DatastoreResource_withFlagPolicy(t *testing.T) {
+	flagPolicyID := os.Getenv("DFCLOUD_TEST_FLAG_POLICY_ID")
+	if flagPolicyID == "" {
+		t.Skip("DFCLOUD_TEST_FLAG_POLICY_ID must be set to run flag policy acceptance tests")
+	}
+
+	name := "tf-test-flags-" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy:             testCheckDatastoreDestroy,
+		Steps: []resource.TestStep{
+			// Create with a flag policy attached.
+			{
+				Config: testAccDatastoreFlagPolicyResourceConfig(name, flagPolicyID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckDatastoreExists("dfcloud_datastore.test"),
+					resource.TestCheckResourceAttr("dfcloud_datastore.test", "flag_policy_id", flagPolicyID),
+				),
+			},
+			// Import State
+			{
+				ResourceName:      "dfcloud_datastore.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Detach the flag policy in place.
+			{
+				Config: testAccDatastoreResourceConfig(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckDatastoreExists("dfcloud_datastore.test"),
+					resource.TestCheckNoResourceAttr("dfcloud_datastore.test", "flag_policy_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDatastoreFlagPolicyResourceConfig(name, flagPolicyID string) string {
+	return fmt.Sprintf(`
+resource "dfcloud_datastore" "test" {
+  name           = %[1]q
+  flag_policy_id = %[2]q
+
+  location = {
+    provider = "aws"
+    region   = "eu-west-1"
+    availability_zones = ["euw1-az2", "euw1-az2"]
+  }
+
+  tier = {
+    max_memory_bytes  = 3e9  # 3GB
+    performance_tier = "dev"
+    replicas        = 1
+  }
+}
+`, name, flagPolicyID)
 }
 
 func testAccDatastoreClusterResourceConfig(name string) string {

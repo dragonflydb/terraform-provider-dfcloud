@@ -28,6 +28,7 @@ type Datastore struct {
 	DisablePassKey    types.Bool        `tfsdk:"disable_pass_key"`
 	MaintenanceWindow types.Object      `tfsdk:"maintenance_window"`
 	BYOCAccountID     types.String      `tfsdk:"byoc_account_id"`
+	FlagPolicyID      types.String      `tfsdk:"flag_policy_id"`
 }
 
 type DatastoreClusterConfig struct {
@@ -143,6 +144,12 @@ func (d *Datastore) FromConfig(ctx context.Context, in *dfcloud.Datastore) {
 	} else {
 		d.BYOCAccountID = types.StringNull()
 	}
+
+	if in.Config.FlagPolicyID != "" {
+		d.FlagPolicyID = types.StringValue(in.Config.FlagPolicyID)
+	} else {
+		d.FlagPolicyID = types.StringNull()
+	}
 }
 
 func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
@@ -230,6 +237,10 @@ func IntoDatastoreConfig(in Datastore) *dfcloud.Datastore {
 
 	if !in.BYOCAccountID.IsNull() && !in.BYOCAccountID.IsUnknown() {
 		datastore.Config.BYOC.AccountID = in.BYOCAccountID.ValueString()
+	}
+
+	if !in.FlagPolicyID.IsNull() && !in.FlagPolicyID.IsUnknown() {
+		datastore.Config.FlagPolicyID = in.FlagPolicyID.ValueString()
 	}
 
 	if !in.Tier.BYOCInstanceFamilyName.IsNull() && !in.Tier.BYOCInstanceFamilyName.IsUnknown() {

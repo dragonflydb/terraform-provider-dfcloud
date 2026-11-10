@@ -110,6 +110,7 @@ resource "dfcloud_datastore" "private" {
 - `cluster` (Attributes) The cluster configuration for the datastore. (see [below for nested schema](#nestedatt--cluster))
 - `disable_pass_key` (Boolean) Disable the passkey for the datastore.
 - `dragonfly` (Attributes) Dragonfly-specific configuration. (see [below for nested schema](#nestedatt--dragonfly))
+- `flag_policy_id` (String) The ID of the flag policy to apply to the datastore. A flag policy defines a set of custom Dragonfly flags. If unset, no flag policy is applied.
 - `maintenance_window` (Attributes) The maintenance window configuration for the datastore. (see [below for nested schema](#nestedatt--maintenance_window))
 - `network_allowed_ips` (List of String) A list of IP addresses or CIDR blocks that can access the datastore. If unset, defaults to 0.0.0.0/0 and allows all.
 - `network_id` (String) The ID of the network the datastore should be placed into.

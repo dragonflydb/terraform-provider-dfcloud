@@ -108,6 +108,10 @@ type DatastoreConfig struct {
 	DisablePasskey bool `json:"disable_passkey"`
 
 	BYOC BYOCConfig `json:"byoc"`
+
+	// FlagPolicyID is an optional ID of a flag policy, which applies a set of
+	// custom Dragonfly flags to the datastore.
+	FlagPolicyID string `json:"flag_policy_id,omitempty"`
 }
 
 type MaintenanceWindow struct {
