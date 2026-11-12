@@ -368,3 +368,19 @@ func (c *Client) request(
 
 	return resp.Body, nil
 }
+
+// ListFlagPolicies lists the flag policies available to the customer.
+func (c *Client) ListFlagPolicies(ctx context.Context) ([]*FlagPolicy, error) {
+	r, err := c.request(ctx, http.MethodGet, "/v1/flag-policies", nil)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var policies []*FlagPolicy
+	if err := json.NewDecoder(r).Decode(&policies); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	return policies, nil
+}

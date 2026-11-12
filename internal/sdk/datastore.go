@@ -108,6 +108,10 @@ type DatastoreConfig struct {
 	DisablePasskey bool `json:"disable_passkey"`
 
 	BYOC BYOCConfig `json:"byoc"`
+
+	// FlagPolicyID is the ID of the applied flag policy. An empty string
+	// detaches the current policy.
+	FlagPolicyID *string `json:"flag_policy_id,omitempty"`
 }
 
 type MaintenanceWindow struct {

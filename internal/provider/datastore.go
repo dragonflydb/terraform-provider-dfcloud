@@ -9,6 +9,7 @@ import (
 	"github.com/dragonflydb/terraform-provider-dfcloud/internal/resource_model"
 	dfcloud "github.com/dragonflydb/terraform-provider-dfcloud/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -174,6 +175,13 @@ func (r *datastoreResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Optional:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"flag_policy_id": schema.StringAttribute{
+				MarkdownDescription: "The ID of the flag policy to apply to the datastore. Can be looked up with the `dfcloud_flag_policy` data source. Remove to detach the policy.",
+				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"network_allowed_ips": schema.ListAttribute{

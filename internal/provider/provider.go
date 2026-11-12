@@ -77,11 +77,12 @@ func (p DragonflyDBCloudProvider) Configure(ctx context.Context, req provider.Co
 	}
 
 	resp.ResourceData = client
+	resp.DataSourceData = client
 }
 
 func (p DragonflyDBCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// Provider specific implementation
+		NewFlagPolicyDataSource,
 	}
 }
 
