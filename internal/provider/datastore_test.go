@@ -107,6 +107,7 @@ func TestAcc_DatastoreResource(t *testing.T) {
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.performance_tier", "dev"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.max_memory_bytes", "3000000000"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "tier.replicas", "0"),
+					resource.TestCheckResourceAttrPair("dfcloud_datastore.test", "flag_policy_id", "data.dfcloud_flag_policy.test", "id"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.cache_mode", "false"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.tls", "false"),
 					resource.TestCheckResourceAttr("dfcloud_datastore.test", "dragonfly.acl_rules.#", "1"),
@@ -211,8 +212,14 @@ resource "dfcloud_datastore" "test" {
 
 func testAccDatastoreResourceConfigUpdated(name string) string {
 	return fmt.Sprintf(`
+data "dfcloud_flag_policy" "test" {
+  name = "num-shards-one"
+}
+
 resource "dfcloud_datastore" "test" {
   name = %[1]q
+
+  flag_policy_id = data.dfcloud_flag_policy.test.id
   
   location = {
     provider = "aws"
